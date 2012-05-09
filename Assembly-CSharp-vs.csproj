@@ -44,7 +44,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\CQS\Control.cs" />
+     <Compile Include="Assets\Scripts\CQS\Discovery.cs" />
      <Compile Include="Assets\Scripts\CQS\Sync.cs" />
      <Compile Include="Assets\Scripts\CSharpScripts\BirdsBehaviour.cs" />
      <Compile Include="Assets\Scripts\CSharpScripts\BlobShadowController.cs" />

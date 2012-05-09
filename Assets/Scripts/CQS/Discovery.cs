@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 
 
-public class Control : MonoBehaviour {
+public class Discovery : MonoBehaviour {
 	
 	public GameObject Car;
 	public static int MaxN = -1;
@@ -71,7 +71,7 @@ public class Control : MonoBehaviour {
 				string [] split = content.Split(new Char [] {','});
 				Vector3 pos = new Vector3(Single.Parse(split[0]), Single.Parse(split[1]), Single.Parse(split[2]));
 				GameObject NewGem;
-				NewGem = Instantiate(Car, pos, Quaternion.identity) as GameObject;
+				NewGem = Instantiate(Car, pos, Car.transform.rotation) as GameObject;
 				
 				ObjID++;
 				KnownList.Add(shortname, content);
