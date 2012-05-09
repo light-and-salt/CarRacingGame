@@ -5,30 +5,43 @@ using System.Collections;
 
 public class Control : MonoBehaviour {
 	
-	public GameObject[] GemArray = new GameObject[4];
+	public GameObject Car;
 	public static int MaxN = -1;
 	private static int ObjID = -1;
 	
 	private Hashtable KnownList;
-	bool KnownDiamond(string name)
+	bool KnownCar(string name)
 	{
 		// returns true if a diamond is already in the scene
 		// returns false otherwise
 		return KnownList.ContainsKey(name);
 	}
 	
-	void Start()
+	IEnumerator Start()
 	{
-		GemArray[0] = GameObject.Find ("purple diamond");
-		GemArray[1] = GameObject.Find ("gray diamond");
-		GemArray[2] = GameObject.Find ("lavendar diamond");
-		GemArray[3] = GameObject.Find ("turquoise diamond");
-		GemArray[0].active = false;
-		GemArray[1].active = false;
-		GemArray[2].active = false;
-		GemArray[3].active = false;
-		
 		KnownList = new Hashtable();
+		
+		Car = GameObject.Find ("Car");
+		float pos_x = UnityEngine.Random.Range(923.3f, 993.4f);
+		float pos_y = 101.1f;
+		float pos_z = 1743.6f - pos_x + UnityEngine.Random.Range(0f, 25f);
+		Vector3 pos = new Vector3(pos_x, pos_y, pos_z);
+		Car.transform.position = pos;
+		
+		ObjID++;
+		// MaxN++;
+		
+		while (Sync.Initialized == false)
+			yield return new WaitForSeconds(0.01f);
+		
+		if (Sync.Initialized == true)
+		{
+			System.String name = Sync.prefix + "/" + ObjID + "/" + UnityEngine.Random.Range(-999999f, 999999f);
+			System.String content = "" + pos.x + "," + pos.y + "," + pos.z;
+			print ("Writing " + name + " to repo: " + content);
+			CCN.WriteToRepo(name, content);
+			KnownList.Add (name, content);
+		}
 	}
 	
 	void Update() {
@@ -49,7 +62,7 @@ public class Control : MonoBehaviour {
 			}
 			string content = Sync.NewObjContent;
 			print ("Control: Got Object From Sync -- " + shortname + ", " + content);
-			if(KnownDiamond(shortname) == false)
+			if(KnownCar(shortname) == false)
 			{
 				// this diamond is new, unknow
 				// we must instantiate it
@@ -59,13 +72,12 @@ public class Control : MonoBehaviour {
 				int type = Int32.Parse(split[0]);
 				Vector3 pos = new Vector3(Int32.Parse(split[1]), Int32.Parse(split[2]), Int32.Parse(split[3]));
 				GameObject NewGem;
-				NewGem = Instantiate(GemArray[type], pos, Quaternion.identity) as GameObject;
+				NewGem = Instantiate(Car, pos, Quaternion.identity) as GameObject;
 				
 				ObjID++;
 				KnownList.Add(shortname, content);
 				
 			}
-			
 			
 			Sync.NewObj = false;
 			Sync.NewObjName = "";
@@ -73,20 +85,5 @@ public class Control : MonoBehaviour {
 			
 		}
 		
-        if (Input.GetKeyUp (KeyCode.Space) && Sync.Initialized == true)
-		{
-			Vector3 pos = new Vector3(UnityEngine.Random.Range(30, 50), 10, UnityEngine.Random.Range(3, 18));
-			int type = UnityEngine.Random.Range(0, 4);
-			GameObject NewGem;
-			NewGem = Instantiate(GemArray[type], pos, Quaternion.identity) as GameObject;
-			
-			ObjID++;
-			// MaxN++;
-			System.String name = Sync.prefix + "/" + ObjID + "/" + UnityEngine.Random.Range(-999999, 999999);
-			System.String content = "" + type + "," + pos.x + "," + pos.y + "," + pos.z;
-			print ("Writing " + name + " to repo: " + content);
-			CCN.WriteToRepo(name, content);
-			KnownList.Add (name, content);
-		}   
     }
 }

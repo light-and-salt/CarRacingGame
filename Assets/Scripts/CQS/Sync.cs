@@ -15,8 +15,8 @@ public class Sync : MonoBehaviour {
 	
 	public static bool Initialized = false;
 	
-	public static System.String prefix = "ccnx:/ndn/ucla.edu/apps/cqs/game0/scene0";
-	private static System.String topo = "ccnx:/ndn/broadcast/cqs/game0/scene0";
+	public static System.String prefix = "ccnx:/ndn/ucla.edu/apps/cqs/car/scene0";
+	private static System.String topo = "ccnx:/ndn/broadcast/cqs/car/scene0";
 	
 	Thread oThread;
 	
