@@ -1,0 +1,8 @@
+CCN Car Racing Game
+by Zening Qu 05/08/2012 quzening@gmail.com
+
+This is a multiplayer on-line car racing game using Content Centric Network (CCN) as its network component. We want to make a game that is scalable, synchronized and purely distributed on CCN.
+
+Feature List:
+- Use CCN Synchronization protocol and CCN Repository Protocol to do game discovery and player discovery.
+- After game and players are discovered, normal interest/content will be sent/received for state synchronization such as position, rotation etc. Prediction/Error Correction algorithms will be used.
