@@ -66,11 +66,10 @@ public class Control : MonoBehaviour {
 			{
 				// this diamond is new, unknow
 				// we must instantiate it
-				print ("New Diamond");
+				print ("New Player Joined.");
 				
 				string [] split = content.Split(new Char [] {','});
-				int type = Int32.Parse(split[0]);
-				Vector3 pos = new Vector3(Int32.Parse(split[1]), Int32.Parse(split[2]), Int32.Parse(split[3]));
+				Vector3 pos = new Vector3(Single.Parse(split[0]), Single.Parse(split[1]), Single.Parse(split[2]));
 				GameObject NewGem;
 				NewGem = Instantiate(Car, pos, Quaternion.identity) as GameObject;
 				

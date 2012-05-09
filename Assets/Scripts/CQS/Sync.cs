@@ -52,16 +52,6 @@ public class Sync : MonoBehaviour {
 	}
 	
 	
-	IEnumerator WatchOverRepo()
-	{
-		CCN.WatchOverRepo(h, prefix, topo);
-		while(true)
-		{
-			yield return new WaitForSeconds(0);
-        	CCN.ccn_run(h, 13);
-		}
-	}
-	
 	void Update()
 	{
 		if(Initialized == true)
