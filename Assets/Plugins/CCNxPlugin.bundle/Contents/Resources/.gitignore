@@ -1,6 +1,2 @@
-SyncTest
-*.a
-*.o
-*.dSYM
-*.dSYM/*
+ccnr
 Makefile
