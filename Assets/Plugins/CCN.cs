@@ -62,5 +62,12 @@ public class CCN : MonoBehaviour {
 	[DllImport ("CCNxPlugin")]
 	public static extern int ccn_set_run_timeout(IntPtr h, int timeout);
 
+	[DllImport ("CCNxPlugin")]
+	public static extern void RegisterInterestFilter(IntPtr ccn, string name);
 	
+	[DllImport ("CCNxPlugin")]
+	public static extern void AskForState(IntPtr ccn, string name, int timeout);
+	
+	[DllImport ("CCNxPlugin")]
+	public static extern int WriteToStateBuffer(string state, int statelens);
 }
