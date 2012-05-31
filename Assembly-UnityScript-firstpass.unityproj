@@ -5,11 +5,11 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{B1530A06-0792-8498-385B-D6CC979863F4}</ProjectGuid>
+	<ProjectGuid>{8A70D836-312F-2B6A-BD6E-32C33982DD47}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
-	<AssemblyName>Assembly-UnityScript</AssemblyName>
+	<AssemblyName>Assembly-UnityScript-firstpass</AssemblyName>
 	<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
 	<FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -44,16 +44,9 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\JavaScripts\BumpTextureTileAnimation.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\Car.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\CrashController.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\FPSCounter.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\LightmapperObjectUV.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\PerformanceTweak.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\ShowOnlyOneWaterObject.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\Skidmarks.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\SoundController.js" />
-     <Compile Include="Assets\Scripts\JavaScripts\SoundToggler.js" />
+     <Compile Include="Assets\Standard Assets\Scripts\Camera Scripts\MouseOrbit.js" />
+     <Compile Include="Assets\Standard Assets\Scripts\Camera Scripts\SmoothFollow.js" />
+     <Compile Include="Assets\Standard Assets\Scripts\Camera Scripts\SmoothLookAt.js" />
      <None Include="Assets\Pro Standard Assets\Glass Refraction\Glass-Stained-BumpDistort.shader" />
      <None Include="Assets\Pro Standard Assets\Image Based\NoiseEffectShaderRGB.shader" />
      <None Include="Assets\Pro Standard Assets\Image Based\GlowEffectDownsample.shader" />
@@ -92,12 +85,6 @@
      <None Include="Assets\Textures\VFX\ShadowProjection.shader" />
      <None Include="Assets\Shaders\TransparentLightMappedVertexLiZWrite.shader" />
      <None Include="Assets\Shaders\Alpha-Diffuse-ZWrite.shader" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{FB069096-6CC6-8582-CAC4-3458826E2A91}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
-    <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
-      <Project>{8A70D836-312F-2B6A-BD6E-32C33982DD47}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -92,6 +92,9 @@
      <None Include="Assets\Textures\VFX\ShadowProjection.shader" />
      <None Include="Assets\Shaders\TransparentLightMappedVertexLiZWrite.shader" />
      <None Include="Assets\Shaders\Alpha-Diffuse-ZWrite.shader" />
+ <Reference Include="Library\ScriptAssemblies\Assembly-UnityScript-firstpass">
+ <HintPath>Library\ScriptAssemblies\Assembly-UnityScript-firstpass.dll</HintPath>
+ </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass-vs.csproj">

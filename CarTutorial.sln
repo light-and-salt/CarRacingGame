@@ -5,6 +5,8 @@ Project("{F986D616-FE78-DCAD-5DDC-764F7D6C38E7}") = "CarTutorial", "Assembly-CSh
 EndProject
 Project("{F986D616-FE78-DCAD-5DDC-764F7D6C38E7}") = "CarTutorial", "Assembly-CSharp.csproj", "{D60D49F6-47AE-8732-5878-BF668738E72E}"
 EndProject
+Project("{F986D616-FE78-DCAD-5DDC-764F7D6C38E7}") = "CarTutorial", "Assembly-UnityScript-firstpass.unityproj", "{8A70D836-312F-2B6A-BD6E-32C33982DD47}"
+EndProject
 Project("{F986D616-FE78-DCAD-5DDC-764F7D6C38E7}") = "CarTutorial", "Assembly-UnityScript.unityproj", "{B1530A06-0792-8498-385B-D6CC979863F4}"
 EndProject
 Global
@@ -21,6 +23,10 @@ Global
 		{D60D49F6-47AE-8732-5878-BF668738E72E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D60D49F6-47AE-8732-5878-BF668738E72E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D60D49F6-47AE-8732-5878-BF668738E72E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A70D836-312F-2B6A-BD6E-32C33982DD47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A70D836-312F-2B6A-BD6E-32C33982DD47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A70D836-312F-2B6A-BD6E-32C33982DD47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A70D836-312F-2B6A-BD6E-32C33982DD47}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B1530A06-0792-8498-385B-D6CC979863F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B1530A06-0792-8498-385B-D6CC979863F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1530A06-0792-8498-385B-D6CC979863F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -29,7 +35,7 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-																																				GlobalSection(MonoDevelopProperties) = preSolution
+																																																GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Assembly-CSharp.csproj
 		Policies = $0
 		$0.TextStylePolicy = $1
