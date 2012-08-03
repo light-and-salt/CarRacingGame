@@ -44,7 +44,7 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Plugins\CCN.cs" />
+     <Compile Include="Assets\Plugins\Egal.cs" />
      <Compile Include="Assets\Plugins\Enum.cs" />
      <Compile Include="Assets\Pro Standard Assets\Image Based\BlurEffect.cs" />
      <Compile Include="Assets\Pro Standard Assets\Image Based\ColorCorrectionEffect.cs" />

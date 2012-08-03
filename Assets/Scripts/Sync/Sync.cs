@@ -18,6 +18,7 @@ public class Sync : MonoBehaviour {
 	
 	public static System.String prefix = "ccnx:/ndn/ucla.edu/apps/cqs/car/scene0";
 	private static System.String topo = "ccnx:/ndn/broadcast/cqs/car/scene0";
+	public static int TIMEOUT = 10;
 	
 	Thread oThread;
 	
@@ -37,25 +38,78 @@ public class Sync : MonoBehaviour {
 		Others = new Hashtable();
 		
 		// start
-		h = CCN.GetHandle();
-		hh = CCN.GetHandle();
+		h = GetHandle();
+		hh = GetHandle();
 		
-		int res = CCN.WriteSlice(h, prefix, topo);
+		int res = WriteSlice(h, prefix, topo);
 		print("WriteSlice returned: " + res);
 
-		CCN.WatchOverRepo(h, prefix, topo);
+		Egal.WatchOverRepo(h, prefix, topo);
 		
 		CarToRepo();
 		
-    	CCN.RegisterInterestFilter(h, me + "/state");
+    	Egal.RegisterInterestFilter(h, me + "/state");
     
 		oThread = new Thread(new ThreadStart(run));
       	oThread.Start();
 	}
 	
+	IntPtr GetHandle()
+	{
+		// this is a C# expansion of Egal.GetHandle()
+		IntPtr ccn = Egal.ccn_create();
+		if (Egal.ccn_connect(ccn, "") == -1) 
+        	print("could not connect to ccnd.\n");
+		else
+			print ("a handle is connected to ccnd.");
+		return ccn;
+	}
+	
+	int WriteSlice(IntPtr h, System.String p, System.String t)
+	{
+		// this is a C# expansion of Egal.WriteSlice
+		int res;
+		IntPtr prefix = Egal.ccn_charbuf_create();
+		IntPtr topo = Egal.ccn_charbuf_create();
+		int timeout = 10000;
+		
+		Egal.ccn_name_init(prefix);
+    	Egal.ccn_name_init(topo);
+		
+		res = Egal.ccn_name_from_uri(prefix, p);
+		if(res<0)
+		{
+			print ("Prefix not right");
+			return res;
+		}
+		
+		res = Egal.ccn_name_from_uri(topo, t);
+		if(res<0)
+		{
+			print ("Topo not right");
+			return res;
+		}
+		
+		timeout = TIMEOUT;
+    	if (timeout < -1) 
+    	{
+   	    	print("Timeout cannot be less than -1");
+        	return -1;
+    	}
+    	timeout *= 1000;
+		
+		IntPtr slice = Egal.ccns_slice_create();
+		Egal.ccns_slice_set_topo_prefix(slice, topo, prefix);
+		
+		res = Egal.ccns_write_slice(h, slice, prefix);
+    
+    	Egal.ccns_slice_destroy(ref slice);
+
+		return res;
+	}
+	
 	void CarToRepo()
 	{
-		
 		Car = GameObject.Find ("Car");
 		float pos_x = UnityEngine.Random.Range(923.3f, 993.4f);
 		float pos_y = 101.1f;
@@ -67,7 +121,7 @@ public class Sync : MonoBehaviour {
 		System.String content = "" + pos.x + "," + pos.y + "," + pos.z;
 		print ("Writing " + name + " to repo: " + content);
 			
-		CCN.WriteToRepo(name, content+','+Car.GetInstanceID());
+		Egal.WriteToRepo(name, content+','+Car.GetInstanceID());
 		
 		Car.name = "" + Car.GetInstanceID();
 		
@@ -77,21 +131,21 @@ public class Sync : MonoBehaviour {
 	
 	public void run()
 	{
-		CCN.ccn_run(h, -1);
+		Egal.ccn_run(h, -1);
 	}
 	
 	void Update()
 	{
 		// read from repo for New Players	
-		CCN.bufnode BufNode;
+		Egal.bufnode BufNode;
 		BufNode.name = "";
 		BufNode.content = "";
 		BufNode.next = IntPtr.Zero;
 		
-		IntPtr temp = CCN.ReadFromBuffer();
+		IntPtr temp = Egal.ReadFromBuffer();
 		if(temp != IntPtr.Zero)
 		{
-			BufNode = (CCN.bufnode)Marshal.PtrToStructure(temp, typeof(CCN.bufnode));
+			BufNode = (Egal.bufnode)Marshal.PtrToStructure(temp, typeof(Egal.bufnode));
 			print(BufNode.name);
 			print(BufNode.content);
 			NewObjName = BufNode.name;
@@ -117,14 +171,14 @@ public class Sync : MonoBehaviour {
 		// write to C state buffer
 		string state = "" + Car.transform.position.x + ", " 
 			+ Car.transform.position.y + ", " + Car.transform.position.z;
-		CCN.WriteToStateBuffer(state, 128);
+		Egal.WriteToStateBuffer(state, 128);
 		
 		// Ask for state of other players
 		foreach(DictionaryEntry d in Others)
 		{
-			CCN.AskForState(hh, d.Key.ToString()+"/state", 1000);
+			Egal.AskForState(hh, d.Key.ToString()+"/state", 1000);
 		}
-		CCN.ccn_run(hh, 10);
+		Egal.ccn_run(hh, 10);
 	}
 	
 	void ApplyNewState(string shortname, string content)
@@ -176,7 +230,7 @@ public class Sync : MonoBehaviour {
 	{
 		print ("quitting...");
 		print ("killing thread...");
-		CCN.ccn_set_run_timeout(h, 0);
+		Egal.ccn_set_run_timeout(h, 0);
 		oThread.Abort();
 		oThread.Join();
 	}
