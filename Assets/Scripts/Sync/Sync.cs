@@ -44,7 +44,7 @@ public class Sync : MonoBehaviour {
 		int res = WriteSlice(h, prefix, topo);
 		print("WriteSlice returned: " + res);
 
-		Egal.WatchOverRepo(h, prefix, topo);
+		WatchOverRepo(h, prefix, topo);
 		
 		CarToRepo();
 		
@@ -71,7 +71,6 @@ public class Sync : MonoBehaviour {
 		int res;
 		IntPtr prefix = Egal.ccn_charbuf_create();
 		IntPtr topo = Egal.ccn_charbuf_create();
-		int timeout = 10000;
 		
 		Egal.ccn_name_init(prefix);
     	Egal.ccn_name_init(topo);
@@ -90,7 +89,7 @@ public class Sync : MonoBehaviour {
 			return res;
 		}
 		
-		timeout = TIMEOUT;
+		int timeout = TIMEOUT;
     	if (timeout < -1) 
     	{
    	    	print("Timeout cannot be less than -1");
@@ -103,9 +102,77 @@ public class Sync : MonoBehaviour {
 		
 		res = Egal.ccns_write_slice(h, slice, prefix);
     
-    	Egal.ccns_slice_destroy(ref slice);
-
+    	Egal.ccns_slice_destroy(ref slice); // after this, slice == 0
+		
 		return res;
+	}
+	
+	static int WatchCallback(IntPtr ccns, IntPtr lhash, IntPtr rhash, IntPtr pname)
+	{
+		print ("WatchCallback...");
+		
+		IntPtr uri = Egal.ccn_charbuf_create();
+		
+		Egal.ccn_charbuf Name = (Egal.ccn_charbuf)Marshal.PtrToStructure(pname, typeof(Egal.ccn_charbuf));
+		Egal.ccn_uri_append(uri, Name.buf, Name.length, 1);
+		
+		IntPtr temp = Egal.ccn_charbuf_as_string(uri);
+		print(Marshal.PtrToStringAnsi(temp));
+		
+		// this uri could be:
+		// (1) known player, including myself
+		// (2) unknown player, which should be added to my namelist
+		//
+		// ...
+		//
+		
+		Egal.ccn_charbuf_destroy(ref uri);
+		return 0;
+	}
+	
+	int WatchOverRepo(IntPtr h, string p, string t)
+	{
+		// this is a C# expansion of Egal.WatchOverRepo
+		int res;
+		IntPtr prefix = Egal.ccn_charbuf_create();
+		IntPtr topo = Egal.ccn_charbuf_create();
+		
+		Egal.ccn_name_init(prefix);
+    	Egal.ccn_name_init(topo);
+		
+		res = Egal.ccn_name_from_uri(prefix, p);
+		if(res<0)
+		{
+			print ("Prefix not right");
+			return res;
+		}
+		
+		res = Egal.ccn_name_from_uri(topo, t);
+		if(res<0)
+		{
+			print ("Topo not right");
+			return res;
+		}
+		
+		int timeout = TIMEOUT;
+    	if (timeout < -1) 
+    	{
+   	    	print("Timeout cannot be less than -1");
+        	return -1;
+    	}
+    	timeout *= 1000;
+		
+		IntPtr slice = Egal.ccns_slice_create();
+    	Egal.ccns_slice_set_topo_prefix(slice, topo, prefix);
+    
+    	IntPtr ccns = Egal.ccns_open(h, slice, WatchCallback, IntPtr.Zero, IntPtr.Zero);
+    
+    	// ccns_close(&ccns, NULL, NULL);
+    
+    	Egal.ccns_slice_destroy(ref slice);
+    
+    	return res;
+		
 	}
 	
 	void CarToRepo()
@@ -134,6 +201,7 @@ public class Sync : MonoBehaviour {
 		Egal.ccn_run(h, -1);
 	}
 	
+	/*
 	void Update()
 	{
 		// read from repo for New Players	
@@ -146,8 +214,8 @@ public class Sync : MonoBehaviour {
 		if(temp != IntPtr.Zero)
 		{
 			BufNode = (Egal.bufnode)Marshal.PtrToStructure(temp, typeof(Egal.bufnode));
-			print(BufNode.name);
-			print(BufNode.content);
+			//print(BufNode.name);
+			//print(BufNode.content);
 			NewObjName = BufNode.name;
 			NewObjContent = BufNode.content;
 			Marshal.FreeCoTaskMem(temp);
@@ -180,6 +248,7 @@ public class Sync : MonoBehaviour {
 		}
 		Egal.ccn_run(hh, 10);
 	}
+	*/
 	
 	void ApplyNewState(string shortname, string content)
 	{
@@ -208,7 +277,7 @@ public class Sync : MonoBehaviour {
 		if(KnownCar(shortname) == false && shortname != me)
 			{
 				
-				print ("New Player Joined. " + shortname + ", " + content);
+				// print ("New Player Joined. " + shortname + ", " + content);
 
 				string [] split = content.Split(new Char [] {','});
 				Vector3 pos = new Vector3(Single.Parse(split[0]), Single.Parse(split[1]), Single.Parse(split[2]));
@@ -219,7 +288,7 @@ public class Sync : MonoBehaviour {
 
 			}
 			else
-				print("Known Player. " + shortname + ", " + content);
+				// print("Known Player. " + shortname + ", " + content);
 
 			Sync.NewObj = false;
 			Sync.NewObjName = "";

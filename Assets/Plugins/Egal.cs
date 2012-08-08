@@ -13,7 +13,7 @@ public class Egal: MonoBehaviour {
 	{
 		public IntPtr length;
     	public IntPtr limit;
-    	public String buf;
+    	public IntPtr buf;
 	}
 	
 	[StructLayout (LayoutKind.Sequential)]
@@ -66,10 +66,8 @@ public class Egal: MonoBehaviour {
 	
 	// CCN-level Functions//
 	//==================================//
-	[DllImport ("Egal")]
-	//[return: MarshalAs(UnmanagedType.LPStruct)]
-	public static extern IntPtr ccn_charbuf_create();
 	
+	// ccnd, handle
 	[DllImport ("Egal")]
 	public static extern IntPtr ccn_create();
 	
@@ -82,12 +80,26 @@ public class Egal: MonoBehaviour {
 	[DllImport ("Egal")]
 	public static extern int ccn_set_run_timeout(IntPtr h, int timeout);
 	
+	// charbuf, name
+	[DllImport ("Egal")]
+	public static extern IntPtr ccn_charbuf_create();
+	
+	[DllImport ("Egal")]
+	public static extern void ccn_charbuf_destroy(ref IntPtr cbp);
+	
+	[DllImport ("Egal")]
+	public static extern IntPtr ccn_charbuf_as_string(IntPtr c);
+	
 	[DllImport ("Egal")]
 	public static extern int ccn_name_init(IntPtr c);
 	
 	[DllImport ("Egal")]
 	public static extern int ccn_name_from_uri(IntPtr c, string uri);
 	
+	[DllImport ("Egal")]
+	public static extern int ccn_uri_append(IntPtr c, IntPtr ccnb, IntPtr size, int includescheme);
+	
+	// slice, ccns
 	[DllImport ("Egal")]
 	public static extern IntPtr ccns_slice_create();
 	
@@ -100,5 +112,18 @@ public class Egal: MonoBehaviour {
 	[DllImport ("Egal")]
 	public static extern void ccns_slice_destroy(ref IntPtr sp);
 	
-
+	[DllImport ("Egal")]
+	public static extern IntPtr ccns_open(IntPtr h, IntPtr slice,
+          ccns_callback callback, IntPtr rhash, IntPtr pname);
+	
+	
+	// Delegates, for Callback //
+	//==================================//
+	public delegate int ccns_callback (IntPtr ccns, IntPtr lhash, IntPtr rhash, IntPtr pname);
+	
+	
+	// Tests //
+	[DllImport ("Egal")]
+	public static extern int nine();
+	
 }

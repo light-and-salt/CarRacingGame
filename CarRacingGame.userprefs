@@ -2,8 +2,8 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Sync/Sync.cs">
     <Files>
-      <File FileName="Assets/Plugins/Egal.cs" Line="102" Column="2" />
-      <File FileName="Assets/Scripts/Sync/Sync.cs" Line="44" Column="13" />
+      <File FileName="Assets/Plugins/Egal.cs" Line="88" Column="47" />
+      <File FileName="Assets/Scripts/Sync/Sync.cs" Line="129" Column="35" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
