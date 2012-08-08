@@ -27,7 +27,7 @@ public class Sync : MonoBehaviour {
 	public static Hashtable Others;
 	
 	
-	bool KnownCar(string name)
+	static bool KnownCar(string name)
 	{
 		return Others.ContainsKey(name);
 	}
@@ -107,6 +107,19 @@ public class Sync : MonoBehaviour {
 		return res;
 	}
 	
+	static String NameTrim(String playername)
+	{
+		// remove version and whatever after it from names
+		String ShortPlayerName = "";
+		int index = playername.IndexOf('%');
+		if(index <= 0)
+			ShortPlayerName = playername;
+		else
+			ShortPlayerName = playername.Remove (index-1);
+		
+		return ShortPlayerName;
+	}
+	
 	static int WatchCallback(IntPtr ccns, IntPtr lhash, IntPtr rhash, IntPtr pname)
 	{
 		print ("WatchCallback...");
@@ -117,14 +130,20 @@ public class Sync : MonoBehaviour {
 		Egal.ccn_uri_append(uri, Name.buf, Name.length, 1);
 		
 		IntPtr temp = Egal.ccn_charbuf_as_string(uri);
-		print(Marshal.PtrToStringAnsi(temp));
+		String PlayerName = Marshal.PtrToStringAnsi(temp);
 		
-		// this uri could be:
-		// (1) known player, including myself
-		// (2) unknown player, which should be added to my namelist
-		//
-		// ...
-		//
+		
+		String ShortPlayerName = NameTrim(PlayerName);
+		
+		if(KnownCar(ShortPlayerName) == false && ShortPlayerName != me)
+		{
+			print ("New Player Joined.");
+		}
+		else
+		{
+			print ("Known Player.");
+		}
+		
 		
 		Egal.ccn_charbuf_destroy(ref uri);
 		return 0;
@@ -277,7 +296,7 @@ public class Sync : MonoBehaviour {
 		if(KnownCar(shortname) == false && shortname != me)
 			{
 				
-				// print ("New Player Joined. " + shortname + ", " + content);
+				print ("New Player Joined. " + shortname + ", " + content);
 
 				string [] split = content.Split(new Char [] {','});
 				Vector3 pos = new Vector3(Single.Parse(split[0]), Single.Parse(split[1]), Single.Parse(split[2]));
@@ -288,7 +307,7 @@ public class Sync : MonoBehaviour {
 
 			}
 			else
-				// print("Known Player. " + shortname + ", " + content);
+				print("Known Player. " + shortname + ", " + content);
 
 			Sync.NewObj = false;
 			Sync.NewObjName = "";
