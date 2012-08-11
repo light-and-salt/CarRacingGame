@@ -26,6 +26,7 @@ public class Sync : MonoBehaviour {
 	public static string me = "";
 	public static Hashtable Others;
 	
+	private static int counter_for_run = 0;
 	
 	static bool KnownCar(string name)
 	{
@@ -39,14 +40,14 @@ public class Sync : MonoBehaviour {
 		
 		// start
 		h = GetHandle();
-		hh = GetHandle();
+		// hh = GetHandle();
 		
 		int res = WriteSlice(h, prefix, topo);
 		print("WriteSlice returned: " + res);
 
 		WatchOverRepo(h, prefix, topo);
 		
-		CarToRepo();
+		CarToRepo(h);
 		
     	Egal.RegisterInterestFilter(h, me + "/state");
     
@@ -194,7 +195,43 @@ public class Sync : MonoBehaviour {
 		
 	}
 	
-	void CarToRepo()
+	struct NormalStruct
+	{
+    	IntPtr nm;
+    	IntPtr cb;
+    	IntPtr ccn;
+    	int vSize;
+    	string value; /* not so sure */
+		
+		// constructor
+		public NormalStruct(IntPtr name, IntPtr contentbuffer, IntPtr handle,
+			 int valuesize, string content)
+		{
+			this.nm = name;
+			this.cb = contentbuffer;
+			this.ccn = handle;
+			this.vSize = valuesize;
+			this.value = content;
+		}
+	}
+	
+	void WriteToRepo(IntPtr h, System.String name, System.String content)
+	{
+		IntPtr cb = Egal.ccn_charbuf_create();
+		IntPtr nm = Egal.ccn_charbuf_create();
+		IntPtr cmd = Egal.ccn_charbuf_create();
+		
+		Egal.ccn_name_from_uri(nm, name);
+		Egal.ccn_create_version(h, nm, VersioningFlags.CCN_V_NOW, 0, 0);
+		
+		NormalStruct Data = new NormalStruct(nm, cb, h, content.Length, content);
+		
+		IntPtr template = Egal.SyncGenInterest(IntPtr.Zero, 1, 4, -1, -1, IntPtr.Zero);
+    
+
+	}
+	
+	void CarToRepo(IntPtr h)
 	{
 		Car = GameObject.Find ("Car");
 		float pos_x = UnityEngine.Random.Range(923.3f, 993.4f);
@@ -207,7 +244,7 @@ public class Sync : MonoBehaviour {
 		System.String content = "" + pos.x + "," + pos.y + "," + pos.z;
 		print ("Writing " + name + " to repo: " + content);
 			
-		Egal.WriteToRepo(name, content+','+Car.GetInstanceID());
+		WriteToRepo(h, name, content+','+Car.GetInstanceID());
 		
 		Car.name = "" + Car.GetInstanceID();
 		
@@ -217,7 +254,15 @@ public class Sync : MonoBehaviour {
 	
 	public void run()
 	{
-		Egal.ccn_run(h, -1);
+		Thread t = Thread.CurrentThread;
+		// print (t.IsAlive);
+		while(t.IsAlive == true)
+		{
+			while(counter_for_run>0)
+				;
+			Egal.ccn_run(h, -1);
+		}
+		
 	}
 	
 	/*

@@ -94,6 +94,8 @@
      <None Include="Assets\Shaders\Alpha-Diffuse-ZWrite.shader" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
+      <Project>{3B1772FE-3648-A34C-5ADF-84FB27B752D4}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
     <ProjectReference Include="Assembly-UnityScript-firstpass.unityproj">
       <Project>{5840B9D8-05E3-443A-9A57-7FBB9ED63731}</Project>      <Name>Assembly-UnityScript-firstpass</Name>    </ProjectReference>
   </ItemGroup>

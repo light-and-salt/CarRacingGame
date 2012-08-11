@@ -44,8 +44,10 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Plugins\Dtag.cs" />
      <Compile Include="Assets\Plugins\Egal.cs" />
-     <Compile Include="Assets\Plugins\Enum.cs" />
+     <Compile Include="Assets\Plugins\Upcall.cs" />
+     <Compile Include="Assets\Plugins\VersioningFlags.cs" />
      <Compile Include="Assets\Pro Standard Assets\Image Based\BlurEffect.cs" />
      <Compile Include="Assets\Pro Standard Assets\Image Based\ColorCorrectionEffect.cs" />
      <Compile Include="Assets\Pro Standard Assets\Image Based\ColorCorrectionEffectPCMac_26.cs" />

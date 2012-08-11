@@ -24,6 +24,25 @@ public class Egal: MonoBehaviour {
     	public IntPtr next;
 	}
 	
+	/**
+ 	* Handle for upcalls that allow clients receive notifications of
+ 	* incoming interests and content.
+ 	*
+ 	* The client is responsible for managing this piece of memory and the
+ 	* data therein. The refcount should be initially zero, and is used by the
+ 	* library to keep to track of multiple registrations of the same closure.
+ 	* When the count drops back to 0, the closure will be called with
+ 	* kind = CCN_UPCALL_FINAL so that it has an opportunity to clean up.
+ 	*/
+	[StructLayout (LayoutKind.Sequential)]
+	public struct ccn_closure {
+    	ccn_handler p;      	/**< client-supplied handler */
+    	IntPtr data;         	/**< for client use */
+    	int intdata;   			/**< for client use */
+    	int refcount;       	/**< client should not update this directly */
+	}
+
+	
 	
 	// Aggregated Functions//
 	//==================================//	
@@ -99,6 +118,11 @@ public class Egal: MonoBehaviour {
 	[DllImport ("Egal")]
 	public static extern int ccn_uri_append(IntPtr c, IntPtr ccnb, IntPtr size, int includescheme);
 	
+	[DllImport ("Egal")]
+	public static extern int ccn_create_version(IntPtr h, IntPtr name,
+                   int versioning_flags, int secs, int nsecs);
+
+	
 	// slice, ccns
 	[DllImport ("Egal")]
 	public static extern IntPtr ccns_slice_create();
@@ -117,9 +141,19 @@ public class Egal: MonoBehaviour {
           ccns_callback callback, IntPtr rhash, IntPtr pname);
 	
 	
+	// interest //
+	//==================================//
+	[DllImport ("Egal")]
+	public static extern IntPtr SyncGenInterest(IntPtr name, int scope, int lifetime, 
+		int maxSuffix, int childPref, IntPtr excl);
+	
+	
 	// Delegates, for Callback //
 	//==================================//
 	public delegate int ccns_callback (IntPtr ccns, IntPtr lhash, IntPtr rhash, IntPtr pname);
+	
+	public delegate Upcall.ccn_upcall_res ccn_handler (IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info);
+
 	
 	
 	// Tests //

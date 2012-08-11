@@ -3,7 +3,7 @@ using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 
-public class Enum : MonoBehaviour {
+public class Dtag : MonoBehaviour {
 
 	public enum ccn_dtag {
     CCN_DTAG_Any = 13,
@@ -113,5 +113,6 @@ public class Enum : MonoBehaviour {
     CCN_DTAG_SequenceNumber = 256,
     CCN_DTAG_CCNProtocolDataUnit = 17702112
 	};
+	
 
 }
