@@ -11,8 +11,8 @@ public class Egal: MonoBehaviour {
 	[StructLayout (LayoutKind.Sequential)]
 	public struct ccn_charbuf 
 	{
-		public IntPtr length;
-    	public IntPtr limit;
+		public int length;
+    	public int limit;
     	public IntPtr buf;
 	}
 	
@@ -37,12 +37,12 @@ public class Egal: MonoBehaviour {
 	[StructLayout (LayoutKind.Sequential)]
 	public struct ccn_closure {
     	ccn_handler p;      	/**< client-supplied handler */
-    	object data;         	/**< for client use */
+    	public IntPtr data;     /**< for client use */
     	int intdata;   			/**< for client use */
     	int refcount;       	/**< client should not update this directly */
 		
 		// constructor
-		public ccn_closure(ccn_handler cb, System.Object pdata, int idata)
+		public ccn_closure(ccn_handler cb, IntPtr pdata, int idata)
 		{
 			p = cb;
 			data = pdata;
@@ -50,8 +50,81 @@ public class Egal: MonoBehaviour {
 			refcount = 0;
 		}
 	}
-
 	
+	/**
+ 	* Additional information provided in the upcall.
+ 	*
+ 	* The client is responsible for managing this piece of memory and the
+ 	* data therein. The refcount should be initially zero, and is used by the
+ 	* library to keep to track of multiple registrations of the same closure.
+ 	* When the count drops back to 0, the closure will be called with
+ 	* kind = CCN_UPCALL_FINAL so that it has an opportunity to clean up.
+ 	*/
+	[StructLayout (LayoutKind.Sequential)]
+	public struct ccn_upcall_info {
+    	public IntPtr h;              /**< The ccn library handle */
+    	/* Interest (incoming or matched) */
+    	IntPtr interest_ccnb;
+    	IntPtr pi;
+    	IntPtr interest_comps;
+    	int matched_comps;
+    	/* Incoming content for CCN_UPCALL_CONTENT* - otherwise NULL */
+    	IntPtr content_ccnb;
+    	IntPtr pco;
+    	IntPtr content_comps;
+	}
+
+	/**
+ * Parameters for creating signed content objects.
+ *
+ * A pointer to one of these may be passed to ccn_sign_content() for
+ * cases where the default signing behavior does not suffice.
+ * For the default (sign with the user's default key pair), pass NULL
+ * for the pointer.
+ *
+ * The recommended way to us this is to create a local variable:
+ *
+ *   struct ccn_signing_params myparams = CCN_SIGNING_PARAMS_INIT;
+ *
+ * and then fill in the desired fields.  This way if additional parameters
+ * are added, it won't be necessary to go back and modify exiting clients.
+ * 
+ * The template_ccnb may contain a ccnb-encoded SignedInfo to supply
+ * selected fields from under the direction of sp_flags.
+ * It is permitted to omit unneeded fields from the template, even if the
+ * schema says they are manditory.
+ *
+ * If the pubid is all zero, the user's default key pair is used for
+ * signing.  Otherwise the corresponding private key must have already
+ * been supplied to the handle using ccn_load_private_key() or equivalent.
+ *
+ * The default signing key is obtained from ~/.ccnx/.ccnx_keystore unless
+ * the CCNX_DIR is used to override the directory location.
+ */
+ 
+	[StructLayout (LayoutKind.Sequential)]
+	public struct ccn_signing_params {
+    	int api_version;
+    	public SP.signingparameters sp_flags;
+    	IntPtr template_ccnb;
+    	[MarshalAs (UnmanagedType.ByValTStr, SizeConst=32)]
+		public string pubid;
+    	public Content.ccn_content_type co_type;
+    	int freshness;
+    	// XXX where should digest_algorithm fit in?
+		
+		// constructor
+		public ccn_signing_params(int api)
+		{
+			api_version = api;
+			sp_flags = 0;
+			template_ccnb = IntPtr.Zero;
+			pubid = "";
+			co_type = Content.ccn_content_type.CCN_CONTENT_DATA;
+			freshness = -1;
+		}
+	}
+
 	
 	// Aggregated Functions//
 	//==================================//	
@@ -119,6 +192,9 @@ public class Egal: MonoBehaviour {
 	public static extern IntPtr ccn_charbuf_as_string(IntPtr c);
 	
 	[DllImport ("Egal")]
+	public static extern int ccn_charbuf_append(IntPtr c, string p, int n);
+	
+	[DllImport ("Egal")]
 	public static extern int ccn_charbuf_append_charbuf(IntPtr c, IntPtr n);
 
 	[DllImport ("Egal")]
@@ -128,7 +204,7 @@ public class Egal: MonoBehaviour {
 	public static extern int ccn_name_from_uri(IntPtr c, string uri);
 	
 	[DllImport ("Egal")]
-	public static extern int ccn_uri_append(IntPtr c, IntPtr ccnb, IntPtr size, int includescheme);
+	public static extern int ccn_uri_append(IntPtr c, IntPtr ccnb, int size, int includescheme);
 	
 	[DllImport ("Egal")]
 	public static extern int ccn_create_version(IntPtr h, IntPtr name,
@@ -136,9 +212,14 @@ public class Egal: MonoBehaviour {
 	
 	[DllImport ("Egal")]
 	public static extern int ccn_name_append_nonce(IntPtr c);
-
-
 	
+	[DllImport ("Egal")]
+	public static extern IntPtr SyncCopyName(IntPtr name);
+	
+	[DllImport ("Egal")]
+	public static extern int ccn_name_append_numeric(IntPtr c, Marker.ccn_marker marker, int value);
+
+
 	// slice, ccns
 	[DllImport ("Egal")]
 	public static extern IntPtr ccns_slice_create();
@@ -169,6 +250,24 @@ public class Egal: MonoBehaviour {
 	[DllImport ("Egal")]
 	public static extern int ccn_express_interest(IntPtr h, IntPtr namebuf,
 		IntPtr p_ccn_closure, IntPtr interest_template);
+	
+	// signning
+	[DllImport ("Egal")]
+	public static extern int ccn_sign_content(IntPtr h, IntPtr resultbuf, IntPtr name_prefix, 
+		IntPtr param, IntPtr data, int size);
+	
+	[DllImport ("Egal")]
+	public static extern int ccn_chk_signing_params(IntPtr h,
+                       IntPtr param,
+                       IntPtr result,
+                       ref IntPtr ptimestamp,
+                       ref IntPtr pfinalblockid,
+                       ref IntPtr pkeylocator);
+			
+	// actions
+	[DllImport ("Egal")]
+	public static extern int ccn_put(IntPtr h, IntPtr p, int length); // returns -1 for error
+
 
 	
 	

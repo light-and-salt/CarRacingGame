@@ -196,13 +196,13 @@ public class Sync : MonoBehaviour {
 		
 	}
 	
-	struct NormalStruct
+	public struct NormalStruct
 	{
-    	IntPtr nm;
+    	public IntPtr nm;
     	IntPtr cb;
-    	IntPtr ccn;
-    	int vSize;
-    	string value; /* not so sure */
+    	public IntPtr ccn; 	// handle
+    	public int vSize;
+    	public string value; /* not so sure */
 		
 		// constructor
 		public NormalStruct(IntPtr name, IntPtr contentbuffer, IntPtr handle,
@@ -216,10 +216,97 @@ public class Sync : MonoBehaviour {
 		}
 	}
 	
+	void PutContent(IntPtr h, NormalStruct Data)
+	{
+		int res = 0;
+		
+		Egal.ccn_charbuf Nm = new Egal.ccn_charbuf();
+		Nm = (Egal.ccn_charbuf)Marshal.PtrToStructure(Data.nm, typeof(Egal.ccn_charbuf));
+		
+		IntPtr uri = Egal.ccn_charbuf_create();
+		Egal.ccn_uri_append(uri, Nm.buf, Nm.length, 0);
+		
+		IntPtr name = Egal.SyncCopyName(Data.nm);
+		IntPtr cb = Egal.ccn_charbuf_create();
+		IntPtr cob = Egal.ccn_charbuf_create();
+		
+		Egal.ccn_charbuf_append(cb, Data.value, Data.vSize);
+		Egal.ccn_charbuf Cb = new Egal.ccn_charbuf();
+		Cb = (Egal.ccn_charbuf)Marshal.PtrToStructure(cb, typeof(Egal.ccn_charbuf));
+		
+		Egal.ccn_signing_params Sp = new Egal.ccn_signing_params(CCN.CCN_API_VERSION);
+		Sp.sp_flags |= SP.signingparameters.CCN_SP_FINAL_BLOCK;
+		IntPtr pSp = Marshal.AllocHGlobal(Marshal.SizeOf(Sp));
+		Marshal.StructureToPtr(Sp, pSp, true);
+		
+		/*
+		// test zone
+		Egal.ccn_signing_params Test = new Egal.ccn_signing_params(CCN.CCN_API_VERSION);
+		IntPtr pTest = Marshal.AllocHGlobal(Marshal.SizeOf(Test));
+		Marshal.StructureToPtr(Test, pTest, true);
+		IntPtr a = IntPtr.Zero;
+		IntPtr b = IntPtr.Zero;
+		IntPtr c = IntPtr.Zero;
+		res = Egal.ccn_chk_signing_params(h, pSp, pTest, ref a, ref b, ref c);
+		print ("check result: " + res);
+		// test zone end
+		*/
+		
+		// Data.ccn, Cb.buf, Data.vSize is correct
+		res = Egal.ccn_sign_content(h, cob, name, pSp, Cb.buf, Data.vSize);
+		if(res<0) print ("sign content error.");
+		
+		Egal.ccn_charbuf Cob = new Egal.ccn_charbuf();
+		Cob = (Egal.ccn_charbuf)Marshal.PtrToStructure(cob, typeof(Egal.ccn_charbuf));
+		res = Egal.ccn_put(Data.ccn, Cob.buf, Cob.length);
+		if (res<0) print ("ccn_put error.");
+		
+		// cleanup
+		Egal.ccn_charbuf_destroy(ref uri);
+		Egal.ccn_charbuf_destroy(ref name);
+		Egal.ccn_charbuf_destroy(ref cb);
+		Egal.ccn_charbuf_destroy(ref cob);
+		Marshal.FreeHGlobal(pSp);
+		
+	}
+	
 	Upcall.ccn_upcall_res WriteCallback(IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info)
 	{
-		print("WriteCallback...");
-		return Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
+		print("WriteCallback... " + kind);
+		Upcall.ccn_upcall_res ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
+		
+		switch(kind)
+		{
+		case Upcall.ccn_upcall_kind.CCN_UPCALL_FINAL:
+            Marshal.FreeHGlobal(selfp); // not necessarily...
+			break;
+			
+		case Upcall.ccn_upcall_kind.CCN_UPCALL_INTEREST:
+			Egal.ccn_upcall_info Info = new Egal.ccn_upcall_info();
+			Info = (Egal.ccn_upcall_info)Marshal.PtrToStructure(info, typeof(Egal.ccn_upcall_info));
+			IntPtr h = Info.h;
+		
+			Egal.ccn_closure Selfp = new Egal.ccn_closure();
+			Selfp = (Egal.ccn_closure)Marshal.PtrToStructure(selfp, typeof(Egal.ccn_closure));
+			NormalStruct Data = new NormalStruct();
+			Data = (NormalStruct) Marshal.PtrToStructure(Selfp.data, typeof(NormalStruct));
+		
+			PutContent(h, Data); // publish content
+			ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_INTEREST_CONSUMED;
+			break;
+			
+		case Upcall.ccn_upcall_kind.CCN_UPCALL_CONTENT:
+			// repo first returns a content...
+			// this is info of the repo...
+			break;
+			
+		default:
+			ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_ERR;
+			break;
+		}
+		
+		
+		return ret;
 	}
 	
 	void WriteToRepo(IntPtr h, System.String name, System.String content)
@@ -234,24 +321,24 @@ public class Sync : MonoBehaviour {
 		Egal.ccn_create_version(h, nm, VersioningFlags.CCN_V_NOW, 0, 0);
 		
 		NormalStruct Data = new NormalStruct(nm, cb, h, content.Length, content);
-		IntPtr template = Egal.SyncGenInterest(IntPtr.Zero, 1, 4, -1, -1, IntPtr.Zero);
-		Egal.ccn_closure Action = new Egal.ccn_closure(WriteCallback, Data, 0);
+		IntPtr pData = Marshal.AllocHGlobal(Marshal.SizeOf(Data));
+		Marshal.StructureToPtr(Data, pData, true);
 		
-		// Initialize unmanged memory to hold the struct.
-        IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(Action));
-		// Copy the structure to the unmanaged memory
+		IntPtr template = Egal.SyncGenInterest(IntPtr.Zero, 1, 4, -1, -1, IntPtr.Zero);
+		
+		Egal.ccn_closure Action = new Egal.ccn_closure(WriteCallback, pData, 0);
+		IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(Action));
 		Marshal.StructureToPtr(Action, pnt, true);
 
-		res = Egal.ccn_set_interest_filter(h, nm, pnt);
+		res = Egal.ccn_set_interest_filter(h, nm, pnt); // listen: interest
 		
 		res = Egal.ccn_charbuf_append_charbuf(cmd, nm);	
-		Egal.ccn_name_from_uri(cmd, "%C1.R.sw");
+		res = Egal.ccn_name_from_uri(cmd, "%C1.R.sw");
 		Egal.ccn_name_append_nonce(cmd);
 		
 		counter_for_run++;
 		res = Egal.ccn_set_run_timeout(h, 0);
-		print(res);
-		Egal.ccn_express_interest(h, cmd, pnt, template);
+		Egal.ccn_express_interest(h, cmd, pnt, template); // express interest
 		counter_for_run--;
 		 
 	}

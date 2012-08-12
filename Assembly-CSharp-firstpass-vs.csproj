@@ -44,8 +44,12 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Plugins\CCN.cs" />
+     <Compile Include="Assets\Plugins\Content.cs" />
      <Compile Include="Assets\Plugins\Dtag.cs" />
      <Compile Include="Assets\Plugins\Egal.cs" />
+     <Compile Include="Assets\Plugins\Marker.cs" />
+     <Compile Include="Assets\Plugins\SP.cs" />
      <Compile Include="Assets\Plugins\Upcall.cs" />
      <Compile Include="Assets\Plugins\VersioningFlags.cs" />
      <Compile Include="Assets\Pro Standard Assets\Image Based\BlurEffect.cs" />
