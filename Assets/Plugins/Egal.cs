@@ -37,9 +37,18 @@ public class Egal: MonoBehaviour {
 	[StructLayout (LayoutKind.Sequential)]
 	public struct ccn_closure {
     	ccn_handler p;      	/**< client-supplied handler */
-    	IntPtr data;         	/**< for client use */
+    	object data;         	/**< for client use */
     	int intdata;   			/**< for client use */
     	int refcount;       	/**< client should not update this directly */
+		
+		// constructor
+		public ccn_closure(ccn_handler cb, System.Object pdata, int idata)
+		{
+			p = cb;
+			data = pdata;
+			intdata = idata;
+			refcount = 0;
+		}
 	}
 
 	
@@ -110,6 +119,9 @@ public class Egal: MonoBehaviour {
 	public static extern IntPtr ccn_charbuf_as_string(IntPtr c);
 	
 	[DllImport ("Egal")]
+	public static extern int ccn_charbuf_append_charbuf(IntPtr c, IntPtr n);
+
+	[DllImport ("Egal")]
 	public static extern int ccn_name_init(IntPtr c);
 	
 	[DllImport ("Egal")]
@@ -121,6 +133,10 @@ public class Egal: MonoBehaviour {
 	[DllImport ("Egal")]
 	public static extern int ccn_create_version(IntPtr h, IntPtr name,
                    int versioning_flags, int secs, int nsecs);
+	
+	[DllImport ("Egal")]
+	public static extern int ccn_name_append_nonce(IntPtr c);
+
 
 	
 	// slice, ccns
@@ -141,11 +157,19 @@ public class Egal: MonoBehaviour {
           ccns_callback callback, IntPtr rhash, IntPtr pname);
 	
 	
-	// interest //
-	//==================================//
+	// interest 
 	[DllImport ("Egal")]
 	public static extern IntPtr SyncGenInterest(IntPtr name, int scope, int lifetime, 
 		int maxSuffix, int childPref, IntPtr excl);
+	
+	[DllImport ("Egal")]
+	public static extern int ccn_set_interest_filter(IntPtr h, IntPtr namebuf, 
+		IntPtr p_ccn_closure);
+	
+	[DllImport ("Egal")]
+	public static extern int ccn_express_interest(IntPtr h, IntPtr namebuf,
+		IntPtr p_ccn_closure, IntPtr interest_template);
+
 	
 	
 	// Delegates, for Callback //

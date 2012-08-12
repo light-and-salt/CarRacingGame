@@ -26,7 +26,7 @@ public class Sync : MonoBehaviour {
 	public static string me = "";
 	public static Hashtable Others;
 	
-	private static int counter_for_run = 0;
+	public static int counter_for_run = 0;
 	
 	static bool KnownCar(string name)
 	{
@@ -40,17 +40,18 @@ public class Sync : MonoBehaviour {
 		
 		// start
 		h = GetHandle();
-		// hh = GetHandle();
 		
 		int res = WriteSlice(h, prefix, topo);
 		print("WriteSlice returned: " + res);
-
+		
+		
 		WatchOverRepo(h, prefix, topo);
 		
 		CarToRepo(h);
 		
     	Egal.RegisterInterestFilter(h, me + "/state");
     
+		
 		oThread = new Thread(new ThreadStart(run));
       	oThread.Start();
 	}
@@ -215,8 +216,16 @@ public class Sync : MonoBehaviour {
 		}
 	}
 	
+	Upcall.ccn_upcall_res WriteCallback(IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info)
+	{
+		print("WriteCallback...");
+		return Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
+	}
+	
 	void WriteToRepo(IntPtr h, System.String name, System.String content)
 	{
+		int res;
+		
 		IntPtr cb = Egal.ccn_charbuf_create();
 		IntPtr nm = Egal.ccn_charbuf_create();
 		IntPtr cmd = Egal.ccn_charbuf_create();
@@ -225,10 +234,26 @@ public class Sync : MonoBehaviour {
 		Egal.ccn_create_version(h, nm, VersioningFlags.CCN_V_NOW, 0, 0);
 		
 		NormalStruct Data = new NormalStruct(nm, cb, h, content.Length, content);
-		
 		IntPtr template = Egal.SyncGenInterest(IntPtr.Zero, 1, 4, -1, -1, IntPtr.Zero);
-    
+		Egal.ccn_closure Action = new Egal.ccn_closure(WriteCallback, Data, 0);
+		
+		// Initialize unmanged memory to hold the struct.
+        IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(Action));
+		// Copy the structure to the unmanaged memory
+		Marshal.StructureToPtr(Action, pnt, true);
 
+		res = Egal.ccn_set_interest_filter(h, nm, pnt);
+		
+		res = Egal.ccn_charbuf_append_charbuf(cmd, nm);	
+		Egal.ccn_name_from_uri(cmd, "%C1.R.sw");
+		Egal.ccn_name_append_nonce(cmd);
+		
+		counter_for_run++;
+		res = Egal.ccn_set_run_timeout(h, 0);
+		print(res);
+		Egal.ccn_express_interest(h, cmd, pnt, template);
+		counter_for_run--;
+		 
 	}
 	
 	void CarToRepo(IntPtr h)
@@ -261,6 +286,7 @@ public class Sync : MonoBehaviour {
 			while(counter_for_run>0)
 				;
 			Egal.ccn_run(h, -1);
+			
 		}
 		
 	}
