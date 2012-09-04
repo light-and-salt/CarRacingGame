@@ -44,14 +44,12 @@ public class Sync : MonoBehaviour {
 		int res = WriteSlice(h, prefix, topo);
 		print("WriteSlice returned: " + res);
 		
-		
 		WatchOverRepo(h, prefix, topo);
 		
 		CarToRepo(h);
 		
-    	Egal.RegisterInterestFilter(h, me + "/state");
+    	RegisterInterestFilter(h, me + "/state");
     
-		
 		oThread = new Thread(new ThreadStart(run));
       	oThread.Start();
 	}
@@ -216,7 +214,7 @@ public class Sync : MonoBehaviour {
 		}
 	}
 	
-	void PutContent(IntPtr h, NormalStruct Data)
+	int PutContent(IntPtr h, NormalStruct Data)
 	{
 		int res = 0;
 		
@@ -253,12 +251,12 @@ public class Sync : MonoBehaviour {
 		*/
 		
 		// Data.ccn, Cb.buf, Data.vSize is correct
-		res = Egal.ccn_sign_content(h, cob, name, pSp, Cb.buf, Data.vSize);
+		res |= Egal.ccn_sign_content(h, cob, name, pSp, Cb.buf, Data.vSize);
 		if(res<0) print ("sign content error.");
 		
 		Egal.ccn_charbuf Cob = new Egal.ccn_charbuf();
 		Cob = (Egal.ccn_charbuf)Marshal.PtrToStructure(cob, typeof(Egal.ccn_charbuf));
-		res = Egal.ccn_put(Data.ccn, Cob.buf, Cob.length);
+		res |= Egal.ccn_put(Data.ccn, Cob.buf, Cob.length);
 		if (res<0) print ("ccn_put error.");
 		
 		// cleanup
@@ -268,6 +266,7 @@ public class Sync : MonoBehaviour {
 		Egal.ccn_charbuf_destroy(ref cob);
 		Marshal.FreeHGlobal(pSp);
 		
+		return res;
 	}
 	
 	Upcall.ccn_upcall_res WriteCallback(IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info)
@@ -275,14 +274,7 @@ public class Sync : MonoBehaviour {
 		print("WriteCallback... " + kind);
 		Upcall.ccn_upcall_res ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
 		
-		switch(kind)
-		{
-		case Upcall.ccn_upcall_kind.CCN_UPCALL_FINAL:
-            Marshal.FreeHGlobal(selfp); // not necessarily...
-			break;
-			
-		case Upcall.ccn_upcall_kind.CCN_UPCALL_INTEREST:
-			Egal.ccn_upcall_info Info = new Egal.ccn_upcall_info();
+		Egal.ccn_upcall_info Info = new Egal.ccn_upcall_info();
 			Info = (Egal.ccn_upcall_info)Marshal.PtrToStructure(info, typeof(Egal.ccn_upcall_info));
 			IntPtr h = Info.h;
 		
@@ -291,6 +283,15 @@ public class Sync : MonoBehaviour {
 			NormalStruct Data = new NormalStruct();
 			Data = (NormalStruct) Marshal.PtrToStructure(Selfp.data, typeof(NormalStruct));
 		
+		switch(kind)
+		{
+		case Upcall.ccn_upcall_kind.CCN_UPCALL_FINAL:
+           	// Marshal.FreeHGlobal(selfp); // this again, will make Unity crash
+			break;
+			
+		case Upcall.ccn_upcall_kind.CCN_UPCALL_INTEREST:
+			
+			
 			PutContent(h, Data); // publish content
 			ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_INTEREST_CONSUMED;
 			break;
@@ -305,12 +306,15 @@ public class Sync : MonoBehaviour {
 			break;
 		}
 		
-		
+		// print ("ref count: " + Selfp.refcount);
+		// print ("WriteCallback returnning..." + ret);
 		return ret;
 	}
 	
 	void WriteToRepo(IntPtr h, System.String name, System.String content)
 	{
+		print ("Writing " + name + " to repo: " + content);
+		
 		int res;
 		
 		IntPtr cb = Egal.ccn_charbuf_create();
@@ -341,6 +345,7 @@ public class Sync : MonoBehaviour {
 		Egal.ccn_express_interest(h, cmd, pnt, template); // express interest
 		counter_for_run--;
 		 
+		return;
 	}
 	
 	void CarToRepo(IntPtr h)
@@ -354,7 +359,6 @@ public class Sync : MonoBehaviour {
 		
 		System.String name = Sync.prefix + "/0/" + UnityEngine.Random.Range(-999999, 999999);
 		System.String content = "" + pos.x + "," + pos.y + "," + pos.z;
-		print ("Writing " + name + " to repo: " + content);
 			
 		WriteToRepo(h, name, content+','+Car.GetInstanceID());
 		
@@ -362,6 +366,34 @@ public class Sync : MonoBehaviour {
 		
 		// Others.Add (name, content);
 		me = name;
+	}
+	
+	Upcall.ccn_upcall_res PublishState(IntPtr selfp,
+                                        Upcall.ccn_upcall_kind kind,
+                                        IntPtr info)
+	{
+		print ("Publish State...");
+		return Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
+		
+	}
+	
+	int RegisterInterestFilter(IntPtr h, string name)
+	{
+		int res = 0;
+    	IntPtr nm = Egal.ccn_charbuf_create();
+    	res = Egal.ccn_name_from_uri(nm, name);
+    	if (res < 0)  return res;
+ 
+    	NormalStruct State = new NormalStruct(nm, IntPtr.Zero, h, 0, "");
+		IntPtr pState = Marshal.AllocHGlobal(Marshal.SizeOf(State));
+		Marshal.StructureToPtr(State, pState, true);
+		
+    	Egal.ccn_closure Action = new Egal.ccn_closure(PublishState, pState, 0);
+    	IntPtr pAction = Marshal.AllocHGlobal(Marshal.SizeOf(Action));
+		Marshal.StructureToPtr(Action, pAction, true);
+		
+    	res = Egal.ccn_set_interest_filter(h, nm, pAction);
+		return res;
 	}
 	
 	public void run()

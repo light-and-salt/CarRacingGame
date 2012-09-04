@@ -36,10 +36,10 @@ public class Egal: MonoBehaviour {
  	*/
 	[StructLayout (LayoutKind.Sequential)]
 	public struct ccn_closure {
-    	ccn_handler p;      	/**< client-supplied handler */
-    	public IntPtr data;     /**< for client use */
-    	int intdata;   			/**< for client use */
-    	int refcount;       	/**< client should not update this directly */
+		ccn_handler p;      	/**< client-supplied handler */
+		public IntPtr data;     /**< for client use */
+		int intdata;   			/**< for client use */
+		private int refcount;       	/**< client should not update this directly */
 		
 		// constructor
 		public ccn_closure(ccn_handler cb, IntPtr pdata, int idata)
@@ -75,32 +75,32 @@ public class Egal: MonoBehaviour {
 	}
 
 	/**
- * Parameters for creating signed content objects.
- *
- * A pointer to one of these may be passed to ccn_sign_content() for
- * cases where the default signing behavior does not suffice.
- * For the default (sign with the user's default key pair), pass NULL
- * for the pointer.
- *
- * The recommended way to us this is to create a local variable:
- *
- *   struct ccn_signing_params myparams = CCN_SIGNING_PARAMS_INIT;
- *
- * and then fill in the desired fields.  This way if additional parameters
- * are added, it won't be necessary to go back and modify exiting clients.
- * 
- * The template_ccnb may contain a ccnb-encoded SignedInfo to supply
- * selected fields from under the direction of sp_flags.
- * It is permitted to omit unneeded fields from the template, even if the
- * schema says they are manditory.
- *
- * If the pubid is all zero, the user's default key pair is used for
- * signing.  Otherwise the corresponding private key must have already
- * been supplied to the handle using ccn_load_private_key() or equivalent.
- *
- * The default signing key is obtained from ~/.ccnx/.ccnx_keystore unless
- * the CCNX_DIR is used to override the directory location.
- */
+ 	* Parameters for creating signed content objects.
+ 	*
+ 	* A pointer to one of these may be passed to ccn_sign_content() for
+ 	* cases where the default signing behavior does not suffice.
+ 	* For the default (sign with the user's default key pair), pass NULL
+ 	* for the pointer.
+ 	*
+ 	* The recommended way to us this is to create a local variable:
+ 	*
+ 	*   struct ccn_signing_params myparams = CCN_SIGNING_PARAMS_INIT;
+	*
+ 	* and then fill in the desired fields.  This way if additional parameters
+ 	* are added, it won't be necessary to go back and modify exiting clients.
+ 	* 
+ 	* The template_ccnb may contain a ccnb-encoded SignedInfo to supply
+ 	* selected fields from under the direction of sp_flags.
+ 	* It is permitted to omit unneeded fields from the template, even if the
+ 	* schema says they are manditory.
+ 	*
+ 	* If the pubid is all zero, the user's default key pair is used for
+ 	* signing.  Otherwise the corresponding private key must have already
+ 	* been supplied to the handle using ccn_load_private_key() or equivalent.
+ 	*
+ 	* The default signing key is obtained from ~/.ccnx/.ccnx_keystore unless
+ 	* the CCNX_DIR is used to override the directory location.
+ 	*/
  
 	[StructLayout (LayoutKind.Sequential)]
 	public struct ccn_signing_params {
