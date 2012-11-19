@@ -173,6 +173,9 @@ public class Egal: MonoBehaviour {
 	public static extern IntPtr ccn_create();
 	
 	[DllImport ("Egal")]
+	public static extern void ccn_destroy(ref IntPtr h);
+	
+	[DllImport ("Egal")]
 	public static extern int ccn_connect(IntPtr h, string name);
 
 	[DllImport ("Egal")]

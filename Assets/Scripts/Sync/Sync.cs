@@ -86,12 +86,11 @@ public class Sync : MonoBehaviour {
 			return res;
 		}
 		
-		IntPtr h = GetHandle();
 		IntPtr slice = Egal.ccns_slice_create();
 		Egal.ccns_slice_set_topo_prefix(slice, topo, prefix);
-		
+		IntPtr h = GetHandle();
 		res = Egal.ccns_write_slice(h, slice, prefix);
-    
+    	Egal.ccn_destroy(ref h);
     	Egal.ccns_slice_destroy(ref slice); // after this, slice == 0
 		
 		return res;
