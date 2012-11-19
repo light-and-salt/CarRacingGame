@@ -39,7 +39,7 @@ public class Egal: MonoBehaviour {
 		ccn_handler p;      	/**< client-supplied handler */
 		public IntPtr data;     /**< for client use */
 		int intdata;   			/**< for client use */
-		private int refcount;       	/**< client should not update this directly */
+		private int refcount;   /**< client should not update this directly */
 		
 		// constructor
 		public ccn_closure(ccn_handler cb, IntPtr pdata, int idata)
@@ -51,6 +51,31 @@ public class Egal: MonoBehaviour {
 		}
 	}
 	
+	/**
+ 	* ccns_name_closure is a closure used to notify the client
+ 	* as each new name is added to the collection by calling the callback
+ 	* procedure.  The data field refers to client data.
+ 	* The ccns field is filled in by ccns_open.  The count field is for client use.
+ 	* The storage for the closure belongs to the client at all times.
+ 	*/
+	[StructLayout (LayoutKind.Sequential)]
+	public struct ccns_name_closure {
+    	ccns_callback callback;
+    	IntPtr ccns; 		/* pointer to struct ccns_handle, filled by ccns_open*/
+    	public IntPtr data;	/* for client use */
+    	Int64 count;		/* for client use */
+		
+		// constructor
+		public ccns_name_closure(ccns_callback cb, IntPtr client_data, Int64 ct)
+		{
+			callback=cb;
+			ccns=IntPtr.Zero;
+			data=client_data;
+			count=ct;
+		}
+	}
+		
+		
 	/**
  	* Additional information provided in the upcall.
  	*
@@ -238,7 +263,7 @@ public class Egal: MonoBehaviour {
 	
 	[DllImport ("Egal")]
 	public static extern IntPtr ccns_open(IntPtr h, IntPtr slice,
-          ccns_callback callback, IntPtr rhash, IntPtr pname);
+          IntPtr closure, IntPtr rhash, IntPtr pname);
 	
 	
 	// interest 

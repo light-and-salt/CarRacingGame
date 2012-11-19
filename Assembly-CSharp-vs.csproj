@@ -54,7 +54,8 @@
      <Compile Include="Assets\Scripts\CSharpScripts\MeshCombineUtility.cs" />
      <Compile Include="Assets\Scripts\CSharpScripts\MirrorReflection.cs" />
      <Compile Include="Assets\Scripts\CSharpScripts\ToggleObjectTrigger.cs" />
-     <Compile Include="Assets\Scripts\Sync\Sync.cs" />
+     <Compile Include="Assets\Scripts\Sync\AssetSync.cs" />
+     <Compile Include="Assets\Scripts\Sync\StateSync.cs" />
      <Compile Include="Assets\~AlternatePhysicsModel\Scripts\AerodynamicResistance.cs" />
      <Compile Include="Assets\~AlternatePhysicsModel\Scripts\AntiRollBar.cs" />
      <Compile Include="Assets\~AlternatePhysicsModel\Scripts\CarController.cs" />

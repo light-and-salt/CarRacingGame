@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-public class Sync : MonoBehaviour {
+public class AssetSync : MonoBehaviour {
 	
-	public static IntPtr h;
+	public static IntPtr h_ccns_watch;
 	public static IntPtr hh;
 	
 	public static bool NewObj = false;
@@ -41,14 +41,12 @@ public class Sync : MonoBehaviour {
 		int res = WriteSlice(prefix, topo);
 		print("WriteSlice returned: " + res);
 		
-		// WatchOverRepo(h, prefix, topo);
+		WatchOverRepo(prefix, topo);
 		
-		// CarToRepo(h);
+		CarToRepo();
 		
     	// RegisterInterestFilter(h, me + "/state");
     
-		// oThread = new Thread(new ThreadStart(run));
-      	// oThread.Start();
 	}
 	
 	IntPtr GetHandle()
@@ -138,10 +136,11 @@ public class Sync : MonoBehaviour {
 		return 0;
 	}
 	
-	int WatchOverRepo(IntPtr h, string p, string t)
+	int WatchOverRepo(string p, string t)
 	{
 		// this is a C# expansion of Egal.WatchOverRepo
 		int res;
+		h_ccns_watch = GetHandle();
 		IntPtr prefix = Egal.ccn_charbuf_create();
 		IntPtr topo = Egal.ccn_charbuf_create();
 		
@@ -162,20 +161,20 @@ public class Sync : MonoBehaviour {
 			return res;
 		}
 		
-		int timeout = TIMEOUT;
-    	if (timeout < -1) 
-    	{
-   	    	print("Timeout cannot be less than -1");
-        	return -1;
-    	}
-    	timeout *= 1000;
 		
 		IntPtr slice = Egal.ccns_slice_create();
     	Egal.ccns_slice_set_topo_prefix(slice, topo, prefix);
     
-    	IntPtr ccns = Egal.ccns_open(h, slice, WatchCallback, IntPtr.Zero, IntPtr.Zero);
-    
-    	// ccns_close(&ccns, NULL, NULL);
+		Egal.ccns_name_closure closure = new Egal.ccns_name_closure(WatchCallback, IntPtr.Zero, 0);
+		IntPtr p_closure = Marshal.AllocHGlobal(Marshal.SizeOf(closure));
+		Marshal.StructureToPtr(closure, p_closure, true);
+		
+    	IntPtr ccns = Egal.ccns_open(h_ccns_watch, slice, p_closure, IntPtr.Zero, IntPtr.Zero);
+		
+		oThread = new Thread(new ThreadStart(run));
+      	oThread.Start();
+		
+		// ccns_close(&ccns, NULL, NULL);
     
     	Egal.ccns_slice_destroy(ref slice);
     
@@ -281,6 +280,7 @@ public class Sync : MonoBehaviour {
 		case Upcall.ccn_upcall_kind.CCN_UPCALL_INTEREST:	
 			// print ("put content");
 			PutContent(h, Data); // publish content
+			Egal.ccn_set_run_timeout(h, 0);
 			ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_INTEREST_CONSUMED;
 			break;
 			
@@ -303,12 +303,12 @@ public class Sync : MonoBehaviour {
 		
 	}
 	
-	void WriteToRepo(IntPtr h, System.String name, System.String content)
+	void WriteToRepo(System.String name, System.String content)
 	{
 		print ("Writing " + name + " to repo: " + content);
 		
 		int res;
-		
+		IntPtr h = GetHandle();
 		IntPtr cb = Egal.ccn_charbuf_create();
 		IntPtr nm = Egal.ccn_charbuf_create();
 		IntPtr cmd = Egal.ccn_charbuf_create();
@@ -332,15 +332,14 @@ public class Sync : MonoBehaviour {
 		res = Egal.ccn_name_from_uri(cmd, "%C1.R.sw");
 		Egal.ccn_name_append_nonce(cmd);
 		
-		counter_for_run++;
-		res = Egal.ccn_set_run_timeout(h, 0);
 		Egal.ccn_express_interest(h, cmd, pnt, template); // express interest
-		counter_for_run--;
+		
+		Egal.ccn_run(h,-1);
 		 
 		return;
 	}
 	
-	void CarToRepo(IntPtr h)
+	void CarToRepo()
 	{
 		Car = GameObject.Find ("Car");
 		float pos_x = UnityEngine.Random.Range(923.3f, 993.4f);
@@ -349,10 +348,10 @@ public class Sync : MonoBehaviour {
 		Vector3 pos = new Vector3(pos_x, pos_y, pos_z);
 		Car.transform.position = pos;
 		
-		System.String name = Sync.prefix + "/0/" + UnityEngine.Random.Range(-999999, 999999);
+		System.String name = AssetSync.prefix + "/0/" + UnityEngine.Random.Range(-999999, 999999);
 		System.String content = "" + pos.x + "," + pos.y + "," + pos.z;
 			
-		WriteToRepo(h, name, content+','+Car.GetInstanceID());
+		WriteToRepo(name, content+','+Car.GetInstanceID());
 		
 		Car.name = "" + Car.GetInstanceID();
 		
@@ -394,9 +393,9 @@ public class Sync : MonoBehaviour {
 		// print (t.IsAlive);
 		while(t.IsAlive == true)
 		{
-			while(counter_for_run>0)
-				;
-			Egal.ccn_run(h, -1);
+			//while(counter_for_run>0)
+				//;
+			Egal.ccn_run(h_ccns_watch, -1);
 			
 		}
 		
@@ -491,19 +490,20 @@ public class Sync : MonoBehaviour {
 			else
 				print("Known Player. " + shortname + ", " + content);
 
-			Sync.NewObj = false;
-			Sync.NewObjName = "";
-			Sync.NewObjContent = "";
+			AssetSync.NewObj = false;
+			AssetSync.NewObjName = "";
+			AssetSync.NewObjContent = "";
 	}
 	
-	/*
+	
 	void OnApplicationQuit() 
 	{
 		print ("quitting...");
 		print ("killing thread...");
-		Egal.ccn_set_run_timeout(h, 0);
+		Egal.ccn_set_run_timeout(h_ccns_watch, 0);
 		oThread.Abort();
 		oThread.Join();
 	}
-	*/
+	
+	
 }
