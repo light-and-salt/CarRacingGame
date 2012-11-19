@@ -36,7 +36,7 @@ public class AssetSync : MonoBehaviour {
 	void Start()
 	{
 		// prepare
-		Others = new Hashtable();
+		// Others = new Hashtable();
 		
 		int res = WriteSlice(prefix, topo);
 		print("WriteSlice returned: " + res);
@@ -54,9 +54,9 @@ public class AssetSync : MonoBehaviour {
 		// this is a C# expansion of Egal.GetHandle()
 		IntPtr ccn = Egal.ccn_create();
 		if (Egal.ccn_connect(ccn, "") == -1) 
-        	print("could not connect to ccnd.\n");
-		else
-			print ("a handle is connected to ccnd.");
+        	print("could not connect to ccnd.");
+		//else
+			//print ("a handle is connected to ccnd.");
 		return ccn;
 	}
 	
@@ -121,7 +121,7 @@ public class AssetSync : MonoBehaviour {
 		
 		
 		String ShortPlayerName = NameTrim(PlayerName);
-		
+		print(ShortPlayerName);
 		if(KnownCar(ShortPlayerName) == false && ShortPlayerName != me)
 		{
 			print ("New Player Joined.");
@@ -208,14 +208,29 @@ public class AssetSync : MonoBehaviour {
 		
 		Egal.ccn_charbuf Nm = new Egal.ccn_charbuf();
 		Nm = (Egal.ccn_charbuf)Marshal.PtrToStructure(Data.nm, typeof(Egal.ccn_charbuf));
-		
 		IntPtr uri = Egal.ccn_charbuf_create();
 		Egal.ccn_uri_append(uri, Nm.buf, Nm.length, 0);
 		
 		IntPtr name = Egal.SyncCopyName(Data.nm);
-		IntPtr cb = Egal.ccn_charbuf_create();
-		IntPtr cob = Egal.ccn_charbuf_create();
 		
+		// test probe //
+		Egal.ccn_charbuf Name = new Egal.ccn_charbuf();
+		Name = (Egal.ccn_charbuf)Marshal.PtrToStructure(name, typeof(Egal.ccn_charbuf));
+		print("Name length before numeric: " + Name.length);
+		// end test probe //
+		
+		res = Egal.ccn_name_append_numeric(name, Marker.ccn_marker.CCN_MARKER_SEQNUM, 0);
+		
+		// test probe //
+		Name = (Egal.ccn_charbuf)Marshal.PtrToStructure(name, typeof(Egal.ccn_charbuf));
+		print("Name length after numeric: " + Name.length);
+		print ("size of enum type is: " + sizeof(Marker.ccn_marker));
+		// end test probe //
+		
+		//print("append numeric returns: " + res);
+		//print(Marker.ccn_marker.CCN_MARKER_SEQNUM);
+		
+		IntPtr cb = Egal.ccn_charbuf_create();
 		Egal.ccn_charbuf_append(cb, Data.value, Data.vSize);
 		Egal.ccn_charbuf Cb = new Egal.ccn_charbuf();
 		Cb = (Egal.ccn_charbuf)Marshal.PtrToStructure(cb, typeof(Egal.ccn_charbuf));
@@ -239,12 +254,16 @@ public class AssetSync : MonoBehaviour {
 		*/
 		
 		// Data.ccn, Cb.buf, Data.vSize is correct
-		res |= Egal.ccn_sign_content(h, cob, name, pSp, Cb.buf, Data.vSize);
+		
+		IntPtr cob = Egal.ccn_charbuf_create();
+		
+		res = Egal.ccn_sign_content(h, cob, name, pSp, Cb.buf, Data.vSize);
 		if(res<0) print ("sign content error.");
 		
 		Egal.ccn_charbuf Cob = new Egal.ccn_charbuf();
 		Cob = (Egal.ccn_charbuf)Marshal.PtrToStructure(cob, typeof(Egal.ccn_charbuf));
-		res |= Egal.ccn_put(Data.ccn, Cob.buf, Cob.length);
+		
+		res = Egal.ccn_put(Data.ccn, Cob.buf, Cob.length);
 		if (res<0) print ("ccn_put error.");
 		
 		// cleanup
@@ -263,13 +282,13 @@ public class AssetSync : MonoBehaviour {
 		Upcall.ccn_upcall_res ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
 		
 		Egal.ccn_upcall_info Info = new Egal.ccn_upcall_info();
-			Info = (Egal.ccn_upcall_info)Marshal.PtrToStructure(info, typeof(Egal.ccn_upcall_info));
-			IntPtr h = Info.h;
+		Info = (Egal.ccn_upcall_info)Marshal.PtrToStructure(info, typeof(Egal.ccn_upcall_info));
+		IntPtr h = Info.h;
 		
-			Egal.ccn_closure Selfp = new Egal.ccn_closure();
-			Selfp = (Egal.ccn_closure)Marshal.PtrToStructure(selfp, typeof(Egal.ccn_closure));
-			NormalStruct Data = new NormalStruct();
-			Data = (NormalStruct) Marshal.PtrToStructure(Selfp.data, typeof(NormalStruct));
+		Egal.ccn_closure Selfp = new Egal.ccn_closure();
+		Selfp = (Egal.ccn_closure)Marshal.PtrToStructure(selfp, typeof(Egal.ccn_closure));
+		NormalStruct Data = new NormalStruct();
+		Data = (NormalStruct) Marshal.PtrToStructure(Selfp.data, typeof(NormalStruct));
 		
 		switch(kind)
 		{
@@ -278,10 +297,16 @@ public class AssetSync : MonoBehaviour {
 			break;
 			
 		case Upcall.ccn_upcall_kind.CCN_UPCALL_INTEREST:	
-			// print ("put content");
-			PutContent(h, Data); // publish content
-			Egal.ccn_set_run_timeout(h, 0);
-			ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_INTEREST_CONSUMED;
+			// print ("put content handle: " + h + ", content: " + Data.value);
+			int res = PutContent(h, Data);
+			if(res >= 0)
+			{
+				ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_INTEREST_CONSUMED;
+				Egal.ccn_set_run_timeout(h, 0);
+			}
+			else
+				print("put content error");
+			
 			break;
 			
 		case Upcall.ccn_upcall_kind.CCN_UPCALL_CONTENT:
@@ -296,8 +321,6 @@ public class AssetSync : MonoBehaviour {
 		
 		// print ("ref count: " + Selfp.refcount);
 		// print ("WriteCallback returnning..." + ret);
-		
-		
 		
 		return ret;
 		
@@ -335,8 +358,9 @@ public class AssetSync : MonoBehaviour {
 		Egal.ccn_express_interest(h, cmd, pnt, template); // express interest
 		
 		Egal.ccn_run(h,-1);
+		
+		Egal.ccn_destroy(ref h);
 		 
-		return;
 	}
 	
 	void CarToRepo()
@@ -348,15 +372,15 @@ public class AssetSync : MonoBehaviour {
 		Vector3 pos = new Vector3(pos_x, pos_y, pos_z);
 		Car.transform.position = pos;
 		
-		System.String name = AssetSync.prefix + "/0/" + UnityEngine.Random.Range(-999999, 999999);
-		System.String content = "" + pos.x + "," + pos.y + "," + pos.z;
+		System.String name = prefix + "/0/12345" /*+ UnityEngine.Random.Range(-999999, 999999)*/;
+		System.String content = "" + pos.x + "," + pos.y + "," + pos.z + ',' + Car.GetInstanceID();
 			
-		WriteToRepo(name, content+','+Car.GetInstanceID());
+		WriteToRepo(name, content);
 		
 		Car.name = "" + Car.GetInstanceID();
 		
 		// Others.Add (name, content);
-		me = name;
+		me = Car.name;
 	}
 	
 	Upcall.ccn_upcall_res PublishState(IntPtr selfp,
@@ -495,7 +519,7 @@ public class AssetSync : MonoBehaviour {
 			AssetSync.NewObjContent = "";
 	}
 	
-	
+	/*
 	void OnApplicationQuit() 
 	{
 		print ("quitting...");
@@ -504,6 +528,6 @@ public class AssetSync : MonoBehaviour {
 		oThread.Abort();
 		oThread.Join();
 	}
-	
+	*/
 	
 }

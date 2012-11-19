@@ -1,9 +1,11 @@
 using UnityEngine;
 using System.Collections;
+using System;
+using System.Runtime.InteropServices;
 
 public class Marker : MonoBehaviour {
 
-	public enum ccn_marker {
+	public enum ccn_marker:long{
     CCN_MARKER_NONE = -1,
     CCN_MARKER_SEQNUM  = 0x00, /**< consecutive block sequence numbers */
     CCN_MARKER_CONTROL = 0xC1, /**< commands, etc. */ 
