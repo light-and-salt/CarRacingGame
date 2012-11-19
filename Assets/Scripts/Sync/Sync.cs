@@ -16,8 +16,8 @@ public class Sync : MonoBehaviour {
 	
 	public static bool Initialized = false;
 	
-	public static System.String prefix = "ccnx:/ndn/ucla.edu/apps/cqs/car/scene0";
-	private static System.String topo = "ccnx:/ndn/broadcast/cqs/car/scene0";
+	public static System.String prefix = "ccnx:/ndn/ucla.edu/apps/EgalCar";
+	private static System.String topo = "ccnx:/ndn/broadcast/EgalCar";
 	public static int TIMEOUT = 10;
 	
 	Thread oThread;
@@ -48,7 +48,7 @@ public class Sync : MonoBehaviour {
 		
 		CarToRepo(h);
 		
-    	RegisterInterestFilter(h, me + "/state");
+    	// RegisterInterestFilter(h, me + "/state");
     
 		oThread = new Thread(new ThreadStart(run));
       	oThread.Start();
@@ -289,9 +289,8 @@ public class Sync : MonoBehaviour {
            	// Marshal.FreeHGlobal(selfp); // this again, will make Unity crash
 			break;
 			
-		case Upcall.ccn_upcall_kind.CCN_UPCALL_INTEREST:
-			
-			
+		case Upcall.ccn_upcall_kind.CCN_UPCALL_INTEREST:	
+			// print ("put content");
 			PutContent(h, Data); // publish content
 			ret = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_INTEREST_CONSUMED;
 			break;
@@ -308,7 +307,11 @@ public class Sync : MonoBehaviour {
 		
 		// print ("ref count: " + Selfp.refcount);
 		// print ("WriteCallback returnning..." + ret);
+		
+		
+		
 		return ret;
+		
 	}
 	
 	void WriteToRepo(IntPtr h, System.String name, System.String content)

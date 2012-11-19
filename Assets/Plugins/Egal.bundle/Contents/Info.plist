@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BuildMachineOSBuild</key>
-	<string>11E53</string>
+	<string>11G56</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
@@ -25,17 +25,17 @@
 	<key>DTCompiler</key>
 	<string></string>
 	<key>DTPlatformBuild</key>
-	<string>4F250</string>
+	<string>4G1004</string>
 	<key>DTPlatformVersion</key>
 	<string>GM</string>
 	<key>DTSDKBuild</key>
-	<string>12A264</string>
+	<string>12C37</string>
 	<key>DTSDKName</key>
 	<string>macosx10.8</string>
 	<key>DTXcode</key>
-	<string>0440</string>
+	<string>0451</string>
 	<key>DTXcodeBuild</key>
-	<string>4F250</string>
+	<string>4G1004</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2012 Zening Qu. All rights reserved.</string>
 </dict>
