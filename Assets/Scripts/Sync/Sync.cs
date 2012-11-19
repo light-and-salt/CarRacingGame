@@ -38,20 +38,17 @@ public class Sync : MonoBehaviour {
 		// prepare
 		Others = new Hashtable();
 		
-		// start
-		h = GetHandle();
-		
-		int res = WriteSlice(h, prefix, topo);
+		int res = WriteSlice(prefix, topo);
 		print("WriteSlice returned: " + res);
 		
-		WatchOverRepo(h, prefix, topo);
+		// WatchOverRepo(h, prefix, topo);
 		
-		CarToRepo(h);
+		// CarToRepo(h);
 		
     	// RegisterInterestFilter(h, me + "/state");
     
-		oThread = new Thread(new ThreadStart(run));
-      	oThread.Start();
+		// oThread = new Thread(new ThreadStart(run));
+      	// oThread.Start();
 	}
 	
 	IntPtr GetHandle()
@@ -65,7 +62,7 @@ public class Sync : MonoBehaviour {
 		return ccn;
 	}
 	
-	int WriteSlice(IntPtr h, System.String p, System.String t)
+	int WriteSlice(System.String p, System.String t)
 	{
 		// this is a C# expansion of Egal.WriteSlice
 		int res;
@@ -89,14 +86,7 @@ public class Sync : MonoBehaviour {
 			return res;
 		}
 		
-		int timeout = TIMEOUT;
-    	if (timeout < -1) 
-    	{
-   	    	print("Timeout cannot be less than -1");
-        	return -1;
-    	}
-    	timeout *= 1000;
-		
+		IntPtr h = GetHandle();
 		IntPtr slice = Egal.ccns_slice_create();
 		Egal.ccns_slice_set_topo_prefix(slice, topo, prefix);
 		
@@ -507,6 +497,7 @@ public class Sync : MonoBehaviour {
 			Sync.NewObjContent = "";
 	}
 	
+	/*
 	void OnApplicationQuit() 
 	{
 		print ("quitting...");
@@ -515,4 +506,5 @@ public class Sync : MonoBehaviour {
 		oThread.Abort();
 		oThread.Join();
 	}
+	*/
 }
