@@ -94,7 +94,7 @@ public class AssetSync : MonoBehaviour {
 		return res;
 	}
 	
-	static String NameTrim(String playername)
+	String NameTrim(String playername)
 	{
 		// remove version and whatever after it from names
 		String ShortPlayerName = "";
@@ -107,7 +107,7 @@ public class AssetSync : MonoBehaviour {
 		return ShortPlayerName;
 	}
 	
-	static int WatchCallback(IntPtr nc, IntPtr lhash, IntPtr rhash, IntPtr pname)
+	int WatchCallback(IntPtr nc, IntPtr lhash, IntPtr rhash, IntPtr pname)
 	{
 		print ("WatchCallback...");
 		
@@ -120,21 +120,28 @@ public class AssetSync : MonoBehaviour {
 		String PlayerName = Marshal.PtrToStringAnsi(temp);
 		
 		String ShortPlayerName = NameTrim(PlayerName);
-		print("Discovered a new name in the repo: " + ShortPlayerName);
+			
+		//print("Discovered a new name in the repo: " + ShortPlayerName);
 		
 		if(KnownCar(ShortPlayerName) == false && ShortPlayerName != me)
 		{
-			print ("New Player Joined.");
+			print ("New Player Joined: " + ShortPlayerName);
+			Others.Add (ShortPlayerName,"");
+			ReadFromRepo(ShortPlayerName);
 		}
 		else
 		{
-			print ("Known Player.");
+			print ("Known Player: " + ShortPlayerName);
 		}
 		
 		
 		Egal.ccn_charbuf_destroy(ref uri);
 		
 		return 0;
+	}
+	
+	void ReadFromRepo(string dst)
+	{
 	}
 	
 	int WatchOverRepo(string p, string t)
@@ -374,6 +381,7 @@ public class AssetSync : MonoBehaviour {
 	
 		me = name;
 	}
+	
 	
 	Upcall.ccn_upcall_res PublishState(IntPtr selfp,
                                         Upcall.ccn_upcall_kind kind,
