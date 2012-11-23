@@ -36,7 +36,7 @@ public class AssetSync : MonoBehaviour {
 	void Start()
 	{
 		// prepare
-		// Others = new Hashtable();
+		Others = new Hashtable();
 		
 		int res = WriteSlice(prefix, topo);
 		print("WriteSlice returned: " + res);
@@ -107,7 +107,7 @@ public class AssetSync : MonoBehaviour {
 		return ShortPlayerName;
 	}
 	
-	static int WatchCallback(IntPtr ccns, IntPtr lhash, IntPtr rhash, IntPtr pname)
+	static int WatchCallback(IntPtr nc, IntPtr lhash, IntPtr rhash, IntPtr pname)
 	{
 		print ("WatchCallback...");
 		
@@ -119,9 +119,9 @@ public class AssetSync : MonoBehaviour {
 		IntPtr temp = Egal.ccn_charbuf_as_string(uri);
 		String PlayerName = Marshal.PtrToStringAnsi(temp);
 		
-		
 		String ShortPlayerName = NameTrim(PlayerName);
-		print(ShortPlayerName);
+		print("Discovered a new name in the repo: " + ShortPlayerName);
+		
 		if(KnownCar(ShortPlayerName) == false && ShortPlayerName != me)
 		{
 			print ("New Player Joined.");
@@ -133,6 +133,7 @@ public class AssetSync : MonoBehaviour {
 		
 		
 		Egal.ccn_charbuf_destroy(ref uri);
+		
 		return 0;
 	}
 	
@@ -148,18 +149,10 @@ public class AssetSync : MonoBehaviour {
     	Egal.ccn_name_init(topo);
 		
 		res = Egal.ccn_name_from_uri(prefix, p);
-		if(res<0)
-		{
-			print ("Prefix not right");
-			return res;
-		}
+		if(res<0){print ("Prefix not right");}
 		
 		res = Egal.ccn_name_from_uri(topo, t);
-		if(res<0)
-		{
-			print ("Topo not right");
-			return res;
-		}
+		if(res<0){print ("Topo not right");}
 		
 		
 		IntPtr slice = Egal.ccns_slice_create();
@@ -170,6 +163,8 @@ public class AssetSync : MonoBehaviour {
 		Marshal.StructureToPtr(closure, p_closure, true);
 		
     	IntPtr ccns = Egal.ccns_open(h_ccns_watch, slice, p_closure, IntPtr.Zero, IntPtr.Zero);
+		
+		//Egal.ccn_run(h_ccns_watch, -1);
 		
 		oThread = new Thread(new ThreadStart(run));
       	oThread.Start();
@@ -182,6 +177,19 @@ public class AssetSync : MonoBehaviour {
 		
 	}
 	
+	public void run()
+	{
+		Thread t = Thread.CurrentThread;
+		// print (t.IsAlive);
+		while(t.IsAlive == true)
+		{
+			//while(counter_for_run>0)
+				//;
+			Egal.ccn_run(h_ccns_watch, -1);
+			
+		}
+		
+	}
 	public struct NormalStruct
 	{
     	public IntPtr nm;
@@ -216,15 +224,15 @@ public class AssetSync : MonoBehaviour {
 		// test probe //
 		Egal.ccn_charbuf Name = new Egal.ccn_charbuf();
 		Name = (Egal.ccn_charbuf)Marshal.PtrToStructure(name, typeof(Egal.ccn_charbuf));
-		print("Name length before numeric: " + Name.length);
+		//print("Name length before numeric: " + Name.length);
 		// end test probe //
 		
 		res = Egal.ccn_name_append_numeric(name, Marker.ccn_marker.CCN_MARKER_SEQNUM, 0);
 		
 		// test probe //
 		Name = (Egal.ccn_charbuf)Marshal.PtrToStructure(name, typeof(Egal.ccn_charbuf));
-		print("Name length after numeric: " + Name.length);
-		print ("size of enum type is: " + sizeof(Marker.ccn_marker));
+		//print("Name length after numeric: " + Name.length);
+		//print ("size of enum type is: " + sizeof(Marker.ccn_marker));
 		// end test probe //
 		
 		//print("append numeric returns: " + res);
@@ -239,19 +247,6 @@ public class AssetSync : MonoBehaviour {
 		Sp.sp_flags |= SP.signingparameters.CCN_SP_FINAL_BLOCK;
 		IntPtr pSp = Marshal.AllocHGlobal(Marshal.SizeOf(Sp));
 		Marshal.StructureToPtr(Sp, pSp, true);
-		
-		/*
-		// test zone
-		Egal.ccn_signing_params Test = new Egal.ccn_signing_params(CCN.CCN_API_VERSION);
-		IntPtr pTest = Marshal.AllocHGlobal(Marshal.SizeOf(Test));
-		Marshal.StructureToPtr(Test, pTest, true);
-		IntPtr a = IntPtr.Zero;
-		IntPtr b = IntPtr.Zero;
-		IntPtr c = IntPtr.Zero;
-		res = Egal.ccn_chk_signing_params(h, pSp, pTest, ref a, ref b, ref c);
-		print ("check result: " + res);
-		// test zone end
-		*/
 		
 		// Data.ccn, Cb.buf, Data.vSize is correct
 		
@@ -376,11 +371,8 @@ public class AssetSync : MonoBehaviour {
 		System.String content = "" + pos.x + "," + pos.y + "," + pos.z + ',' + Car.GetInstanceID();
 			
 		WriteToRepo(name, content);
-		
-		Car.name = "" + Car.GetInstanceID();
-		
-		// Others.Add (name, content);
-		me = Car.name;
+	
+		me = name;
 	}
 	
 	Upcall.ccn_upcall_res PublishState(IntPtr selfp,
@@ -411,19 +403,7 @@ public class AssetSync : MonoBehaviour {
 		return res;
 	}
 	
-	public void run()
-	{
-		Thread t = Thread.CurrentThread;
-		// print (t.IsAlive);
-		while(t.IsAlive == true)
-		{
-			//while(counter_for_run>0)
-				//;
-			Egal.ccn_run(h_ccns_watch, -1);
-			
-		}
-		
-	}
+	
 	
 	/*
 	void Update()
@@ -519,7 +499,7 @@ public class AssetSync : MonoBehaviour {
 			AssetSync.NewObjContent = "";
 	}
 	
-	/*
+	
 	void OnApplicationQuit() 
 	{
 		print ("quitting...");
@@ -528,6 +508,6 @@ public class AssetSync : MonoBehaviour {
 		oThread.Abort();
 		oThread.Join();
 	}
-	*/
+	
 	
 }

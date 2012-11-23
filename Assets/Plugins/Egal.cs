@@ -301,7 +301,7 @@ public class Egal: MonoBehaviour {
 	
 	// Delegates, for Callback //
 	//==================================//
-	public delegate int ccns_callback (IntPtr ccns, IntPtr lhash, IntPtr rhash, IntPtr pname);
+	public delegate int ccns_callback (IntPtr nc, IntPtr lhash, IntPtr rhash, IntPtr pname);
 	
 	public delegate Upcall.ccn_upcall_res ccn_handler (IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info);
 
