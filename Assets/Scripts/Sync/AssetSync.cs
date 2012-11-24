@@ -122,7 +122,9 @@ public class AssetSync : MonoBehaviour {
 		String ShortPlayerName = NameTrim(PlayerName);
 			
 		//print("Discovered a new name in the repo: " + ShortPlayerName);
+		ReadFromRepo(ShortPlayerName);
 		
+		/*
 		if(KnownCar(ShortPlayerName) == false && ShortPlayerName != me)
 		{
 			print ("New Player Joined: " + ShortPlayerName);
@@ -133,7 +135,7 @@ public class AssetSync : MonoBehaviour {
 		{
 			print ("Known Player: " + ShortPlayerName);
 		}
-		
+		*/
 		
 		Egal.ccn_charbuf_destroy(ref uri);
 		
@@ -142,13 +144,21 @@ public class AssetSync : MonoBehaviour {
 	
 	static Upcall.ccn_upcall_res ReadCallback(IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info)
 	{
-		print("ReadCallback!");
+		print("ReadCallback! " + kind);
 		Upcall.ccn_upcall_res res = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
+		
+		Egal.ccn_upcall_info Info = new Egal.ccn_upcall_info();
+		Info = (Egal.ccn_upcall_info)Marshal.PtrToStructure(info, typeof(Egal.ccn_upcall_info));
+		IntPtr h=Info.h;
+		
+		Egal.ccn_set_run_timeout(h, 0);
+		
 		return res;
 	}
 	
 	static void ReadFromRepo(string dst)
 	{
+		print("Reading from the repo.");
 		IntPtr ccn = GetHandle();
 		int res = 0;
 		IntPtr nm = Egal.ccn_charbuf_create();
@@ -167,6 +177,7 @@ public class AssetSync : MonoBehaviour {
 		Marshal.StructureToPtr(Action, pnt, true);
 		
 		Egal.ccn_express_interest(ccn,nm,pnt,template);
+		Egal.ccn_run(ccn,-1);
 		
 		Egal.ccn_destroy(ref ccn);
 	}
