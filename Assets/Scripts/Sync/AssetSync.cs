@@ -140,19 +140,31 @@ public class AssetSync : MonoBehaviour {
 		return 0;
 	}
 	
+	Upcall.ccn_upcall_res ReadCallback(IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info)
+	{
+		print("ReadCallback!");
+		Upcall.ccn_upcall_res res = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
+		return res;
+	}
+	
 	void ReadFromRepo(string dst)
 	{
 		IntPtr ccn = GetHandle();
 		int res = 0;
 		IntPtr nm = Egal.ccn_charbuf_create();
 		Egal.ccn_name_from_uri(nm,dst);
-		Egal.ccn_create_version(ccn, nm, VersioningFlags.CCN_V_NOW, 0, 0);
+		Egal.ccn_create_version(ccn, nm, VersioningFlags.CCN_V_LOW, 0, 0); // without version, Unity crashes!
+		//CCN_V_LOW might be right, might not!
 		
 		NormalStruct Data = new NormalStruct(nm, IntPtr.Zero, IntPtr.Zero, 0, "");
 		IntPtr pData = Marshal.AllocHGlobal(Marshal.SizeOf(Data));
 		Marshal.StructureToPtr(Data, pData, true);
 		
 		IntPtr template = Egal.SyncGenInterest(IntPtr.Zero, 1, 4, -1, -1, IntPtr.Zero);
+		
+		Egal.ccn_closure Action = new Egal.ccn_closure(ReadCallback, pData, 0);
+		IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(Action));
+		Marshal.StructureToPtr(Action, pnt, true);
 		
 		Egal.ccn_destroy(ref ccn);
 	}
