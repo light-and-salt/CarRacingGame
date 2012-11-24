@@ -142,6 +142,13 @@ public class AssetSync : MonoBehaviour {
 	
 	void ReadFromRepo(string dst)
 	{
+		IntPtr ccn = GetHandle();
+		int res = 0;
+		IntPtr nm = Egal.ccn_charbuf_create();
+		Egal.ccn_name_from_uri(nm,dst);
+		if(res<0) {print ("ReadFromRepo(): name parsing failed.");}
+		
+		Egal.ccn_destroy(ref ccn);
 	}
 	
 	int WatchOverRepo(string p, string t)
