@@ -166,6 +166,8 @@ public class AssetSync : MonoBehaviour {
 		IntPtr pnt = Marshal.AllocHGlobal(Marshal.SizeOf(Action));
 		Marshal.StructureToPtr(Action, pnt, true);
 		
+		Egal.ccn_express_interest(ccn,nm,pnt,template);
+		
 		Egal.ccn_destroy(ref ccn);
 	}
 	
