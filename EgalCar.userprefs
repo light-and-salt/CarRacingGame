@@ -1,8 +1,8 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="../../Desktop/Crash/AssetSync_crash.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Sync/AssetSync.cs">
     <Files>
-      <File FileName="../../Desktop/Crash/AssetSync_crash.cs" Line="203" Column="82" />
+      <File FileName="Assets/Scripts/Sync/AssetSync.cs" Line="354" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

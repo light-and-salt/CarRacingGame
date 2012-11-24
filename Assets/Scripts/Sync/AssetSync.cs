@@ -49,7 +49,7 @@ public class AssetSync : MonoBehaviour {
     
 	}
 	
-	IntPtr GetHandle()
+	static IntPtr GetHandle()
 	{
 		// this is a C# expansion of Egal.GetHandle()
 		IntPtr ccn = Egal.ccn_create();
@@ -94,7 +94,7 @@ public class AssetSync : MonoBehaviour {
 		return res;
 	}
 	
-	String NameTrim(String playername)
+	static String NameTrim(String playername)
 	{
 		// remove version and whatever after it from names
 		String ShortPlayerName = "";
@@ -107,7 +107,7 @@ public class AssetSync : MonoBehaviour {
 		return ShortPlayerName;
 	}
 	
-	int WatchCallback(IntPtr nc, IntPtr lhash, IntPtr rhash, IntPtr pname)
+	static int WatchCallback(IntPtr nc, IntPtr lhash, IntPtr rhash, IntPtr pname)
 	{
 		print ("WatchCallback...");
 		
@@ -140,14 +140,14 @@ public class AssetSync : MonoBehaviour {
 		return 0;
 	}
 	
-	Upcall.ccn_upcall_res ReadCallback(IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info)
+	static Upcall.ccn_upcall_res ReadCallback(IntPtr selfp, Upcall.ccn_upcall_kind kind, IntPtr info)
 	{
 		print("ReadCallback!");
 		Upcall.ccn_upcall_res res = Upcall.ccn_upcall_res.CCN_UPCALL_RESULT_OK;
 		return res;
 	}
 	
-	void ReadFromRepo(string dst)
+	static void ReadFromRepo(string dst)
 	{
 		IntPtr ccn = GetHandle();
 		int res = 0;
