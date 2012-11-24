@@ -146,11 +146,13 @@ public class AssetSync : MonoBehaviour {
 		int res = 0;
 		IntPtr nm = Egal.ccn_charbuf_create();
 		Egal.ccn_name_from_uri(nm,dst);
-		if(res<0) {print ("ReadFromRepo(): name parsing failed.");}
+		Egal.ccn_create_version(ccn, nm, VersioningFlags.CCN_V_NOW, 0, 0);
 		
 		NormalStruct Data = new NormalStruct(nm, IntPtr.Zero, IntPtr.Zero, 0, "");
 		IntPtr pData = Marshal.AllocHGlobal(Marshal.SizeOf(Data));
 		Marshal.StructureToPtr(Data, pData, true);
+		
+		IntPtr template = Egal.SyncGenInterest(IntPtr.Zero, 1, 4, -1, -1, IntPtr.Zero);
 		
 		Egal.ccn_destroy(ref ccn);
 	}
